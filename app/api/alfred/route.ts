@@ -35,6 +35,7 @@ const EVENT_SOURCE_URLS = [
   'https://visitalba.eu/eventi/',
 ]
 const WEATHER_SOURCE_URLS = ['https://www.3bmeteo.com/meteo/italia']
+const BOOKING_URL = 'https://www.hotellanghemonferrato.com/prenota'
 
 const SYSTEM_MESSAGES: Record<ConversationLang, { tempError: string; limitErrors: string[]; limitFollowUp: string }> = {
   it: {
@@ -415,10 +416,14 @@ REGOLE DI RISPOSTA:
 4.sexies Per richieste su orari di apertura usa la ricerca live solo per eventi/musei/cantine/attrazioni; per attività commerciali (ristoranti, negozi, farmacie, ecc.) usa esclusivamente i dati Google/My Business presenti nella conoscenza interna.
 5. ${handoverInstruction}
 6. Se l'ospite vuole parlare con una persona dello staff, facilita sempre il passaggio.
-6.bis In caso di richiesta di contatto umano (reception/staff/operatore), NON elencare subito tutti i contatti insieme.
-  Chiedi prima la preferenza con una domanda breve, ad esempio: "Preferisci che ti passi WhatsApp o numero di telefono?".
-6.ter Dopo la scelta dell'utente, fornisci SOLO il canale scelto (WhatsApp oppure telefono), in formato cliccabile se possibile.
-6.quater Se l'utente esprime urgenza, oltre alla domanda di preferenza puoi proporre direttamente il canale più rapido, ma resta sintetico.
+6.bis PRENOTAZIONI: se l'utente vuole prenotare o chiede come farlo, NON elencare subito tutti i contatti.
+   Chiedi prima con una domanda breve e naturale come:
+   "Preferisci prenotare direttamente dal nostro modulo online (semplice e veloce) o vuoi parlare con qualcuno del team?"
+6.ter In base alla risposta:
+   - Se sceglie online → dai il link diretto: [Prenota qui](${BOOKING_URL})
+   - Se sceglie staff → chiedi se preferisce WhatsApp o telefono fisso, poi fornisci SOLO il canale scelto.
+6.quater Se l'utente esprime urgenza o ha già scelto implicitamente (es. "voglio parlare con qualcuno"), salta la domanda e vai diretto al contatto più adatto.
+6.quinquies Non presentare MAI tutti i canali insieme (modulo + WhatsApp + telefono in un colpo solo): risulta caotico. Uno per volta, in base alla scelta.
 7. Tono: caloroso, genuino, mai rigido. Come se parlassi con un ospite seduto in reception davanti a te.
 8. I messaggi automatici e di servizio devono essere nella lingua corrente della conversazione: ${conversationLang}.
 8.bis Mantieni coerenza con la tipologia del posto consigliato:
