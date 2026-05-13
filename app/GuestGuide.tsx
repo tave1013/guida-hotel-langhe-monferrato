@@ -1295,11 +1295,15 @@ function AlfredTab({
   hasSeenWelcome,
   onWelcomeShown,
   onBackHome,
+  avatarSrc,
+  onAvatarError,
 }: {
   lang: Lang
   hasSeenWelcome: boolean
   onWelcomeShown: () => void
   onBackHome: () => void
+  avatarSrc: string
+  onAvatarError: () => void
 }) {
   const uiTxt = ALFRED_UI_TEXT[lang]
   const personalConciergeLabel: Record<Lang, string> = {
@@ -1624,14 +1628,9 @@ function AlfredTab({
             }}
           >
             <img
-              src={ALFRED_AVATAR_PRIMARY}
+              src={avatarSrc}
               alt="Alfred"
-              onError={(e) => {
-                const img = e.currentTarget
-                if (img.src.includes(ALFRED_AVATAR_PRIMARY)) {
-                  img.src = ALFRED_AVATAR_FALLBACK
-                }
-              }}
+              onError={onAvatarError}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           </div>
@@ -1862,6 +1861,7 @@ export default function GuestGuide() {
   const [lang, setLang] = useState<Lang>('it')
   const [langOpen, setLangOpen] = useState(false)
   const [hasSeenAlfredWelcome, setHasSeenAlfredWelcome] = useState(false)
+  const [alfredAvatarSrc, setAlfredAvatarSrc] = useState(ALFRED_AVATAR_FALLBACK)
   const headerTxt = T.header[lang]
   const navTxt = T.nav[lang]
   const isAlfredTab = tab === 'alfred'
@@ -1874,11 +1874,26 @@ export default function GuestGuide() {
     }
   }, [])
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const probe = new window.Image()
+    probe.onload = () => setAlfredAvatarSrc(ALFRED_AVATAR_PRIMARY)
+    probe.onerror = () => setAlfredAvatarSrc(ALFRED_AVATAR_FALLBACK)
+    probe.src = ALFRED_AVATAR_PRIMARY
+  }, [])
+
   const markAlfredWelcomeSeen = React.useCallback(() => {
     setHasSeenAlfredWelcome(true)
     if (typeof window !== 'undefined') {
       window.sessionStorage.setItem('alfred-welcome-seen', '1')
     }
+  }, [])
+
+  const handleAlfredAvatarError = React.useCallback(() => {
+    setAlfredAvatarSrc((current) =>
+      current === ALFRED_AVATAR_FALLBACK ? current : ALFRED_AVATAR_FALLBACK,
+    )
   }, [])
 
   const renderTab = () => {
@@ -1888,7 +1903,7 @@ export default function GuestGuide() {
       case 'esperienze': return <EsperienzeTab lang={lang} />
       case 'negozi': return <NegoziTab lang={lang} />
       case 'muoversi': return <MuoversiTab lang={lang} />
-      case 'alfred': return <AlfredTab lang={lang} hasSeenWelcome={hasSeenAlfredWelcome} onWelcomeShown={markAlfredWelcomeSeen} onBackHome={() => setTab('home')} />
+      case 'alfred': return <AlfredTab lang={lang} hasSeenWelcome={hasSeenAlfredWelcome} onWelcomeShown={markAlfredWelcomeSeen} onBackHome={() => setTab('home')} avatarSrc={alfredAvatarSrc} onAvatarError={handleAlfredAvatarError} />
       default: return null
     }
   }
@@ -2029,14 +2044,9 @@ export default function GuestGuide() {
                   }}
                 >
                   <img
-                    src={ALFRED_AVATAR_PRIMARY}
+                    src={alfredAvatarSrc}
                     alt="Alfred"
-                    onError={(e) => {
-                      const img = e.currentTarget
-                      if (img.src.includes(ALFRED_AVATAR_PRIMARY)) {
-                        img.src = ALFRED_AVATAR_FALLBACK
-                      }
-                    }}
+                    onError={handleAlfredAvatarError}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 </div>
