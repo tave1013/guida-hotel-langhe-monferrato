@@ -1,6 +1,8 @@
 'use client'
 import React from 'react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useChat } from '@ai-sdk/react'
+import { DefaultChatTransport } from 'ai'
 import { T, type Lang } from './translations'
 
 type IconProps = {
@@ -8,12 +10,6 @@ type IconProps = {
   activeColor?: string
   inactiveColor?: string
   activeFill?: string
-}
-
-type ChatMessage = {
-  id: string
-  role: 'assistant' | 'user'
-  text: string
 }
 
 // ─── SVG ICONS ───────────────────────────────────────────────────────────────
@@ -1216,89 +1212,313 @@ function MuoversiTab({ lang }: { lang: Lang }) {
   )
 }
 
-const ALFRED_WEBHOOK = 'https://tave1013.app.n8n.cloud/webhook-test/chat-alfred'
-const ALFRED_SESSION = 'hotel-langhe-alfred'
+const ALFRED_UI_TEXT: Record<Lang, {
+  subtitle: string
+  welcome: string
+  placeholder: string
+  send: string
+  tempError: string
+}> = {
+  it: {
+    subtitle: "Chat concierge dell'hotel",
+    welcome: 'Ciao! Sono Alfred 👋\nCome posso aiutarti durante il tuo soggiorno?',
+    placeholder: 'Scrivi un messaggio...',
+    send: 'Invia',
+    tempError: 'Al momento sto riordinando i registri, riprova tra un istante.',
+  },
+  en: {
+    subtitle: 'Hotel concierge chat',
+    welcome: "Hi! I'm Alfred 👋\nHow can I help you during your stay?",
+    placeholder: 'Type a message...',
+    send: 'Send',
+    tempError: 'I am tidying up the registers right now, please try again in a moment.',
+  },
+  fr: {
+    subtitle: "Chat concierge de l'hôtel",
+    welcome: 'Bonjour ! Je suis Alfred 👋\nComment puis-je vous aider pendant votre séjour ?',
+    placeholder: 'Écrivez un message...',
+    send: 'Envoyer',
+    tempError: "Je suis en train d'organiser les registres, veuillez réessayer dans un instant.",
+  },
+  de: {
+    subtitle: 'Hotel-Concierge-Chat',
+    welcome: 'Hallo! Ich bin Alfred 👋\nWie kann ich Ihnen während Ihres Aufenthalts helfen?',
+    placeholder: 'Nachricht eingeben...',
+    send: 'Senden',
+    tempError: 'Ich ordne gerade die Register, bitte versuchen Sie es in einem Moment erneut.',
+  },
+  es: {
+    subtitle: 'Chat de conserjería del hotel',
+    welcome: '¡Hola! Soy Alfred 👋\n¿Cómo puedo ayudarte durante tu estancia?',
+    placeholder: 'Escribe un mensaje...',
+    send: 'Enviar',
+    tempError: 'En este momento estoy ordenando los registros, inténtalo de nuevo en un instante.',
+  },
+}
 
-function AlfredTab() {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'm1',
-      role: 'assistant',
-      text: 'Ciao! Sono Alfred 👋\nCome posso aiutarti durante il tuo soggiorno?',
-    },
-  ])
+function AlfredTab({ lang }: { lang: Lang }) {
+  const uiTxt = ALFRED_UI_TEXT[lang]
+  const { messages, sendMessage: sendChatMessage, status, error } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/alfred' }),
+  })
   const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
+  const loading = status === 'submitted' || status === 'streaming'
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  const sendMessage = async () => {
+  useEffect(() => {
+    setTimeout(scrollToBottom, 50)
+  }, [messages, loading, error])
+
+  const onSendMessage = async () => {
     const text = input.trim()
     if (!text || loading) return
 
-    const userMsg: ChatMessage = { id: `u-${Date.now()}`, role: 'user', text }
-    setMessages((prev) => [...prev, userMsg])
+    sendChatMessage({ text })
     setInput('')
-    setLoading(true)
-    setTimeout(scrollToBottom, 50)
+  }
+
+  const getMessageText = (parts: Array<{ type: string; text?: string }>) =>
+    parts
+      .filter((part) => part.type === 'text' && typeof part.text === 'string')
+      .map((part) => part.text)
+      .join('\n')
+
+  const getReadableErrorMessage = (rawMessage?: string) => {
+    if (!rawMessage) return uiTxt.tempError
+
+    const trimmed = rawMessage.trim()
 
     try {
-      const res = await fetch(ALFRED_WEBHOOK, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chatInput: text, sessionId: ALFRED_SESSION }),
-      })
-      const data = await res.json()
-      const botMsg: ChatMessage = {
-        id: `a-${Date.now()}`,
-        role: 'assistant',
-        text: data.output ?? 'Non ho ricevuto una risposta. Riprova tra poco.',
-      }
-      setMessages((prev) => [...prev, botMsg])
+      const parsed = JSON.parse(trimmed) as { error?: string; message?: string }
+      if (typeof parsed.error === 'string' && parsed.error.trim()) return parsed.error
+      if (typeof parsed.message === 'string' && parsed.message.trim()) return parsed.message
     } catch {
-      const errMsg: ChatMessage = {
-        id: `e-${Date.now()}`,
-        role: 'assistant',
-        text: 'Errore di connessione. Controlla la rete e riprova.',
-      }
-      setMessages((prev) => [...prev, errMsg])
-    } finally {
-      setLoading(false)
-      setTimeout(scrollToBottom, 50)
+      // ignore parse errors and fallback below
     }
+
+    return trimmed
+  }
+
+  const renderMessageContent = (rawText: string, role: 'assistant' | 'user') => {
+    const normalizedText = rawText.replace(/\*([^*\n][^*\n]{0,120})\*\*/g, '**$1**')
+    const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g
+    const autoLinkRegex = /([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}|\+?\d[\d\s().-]{6,}\d)/gi
+    const nodes: React.ReactNode[] = []
+
+    const regularLinkStyle = {
+      color: role === 'user' ? '#F2EBDD' : C.brownMid,
+      textDecoration: 'underline' as const,
+      fontWeight: 600,
+    }
+
+    const renderInlineBold = (text: string, keyPrefix: string) => {
+      const boldRegex = /\*\*([^*]+)\*\*/g
+      const inlineNodes: React.ReactNode[] = []
+      let inlineLastIndex = 0
+      let inlineMatch: RegExpExecArray | null
+
+      while ((inlineMatch = boldRegex.exec(text)) !== null) {
+        const [fullMatch, boldText] = inlineMatch
+        const inlineIndex = inlineMatch.index
+
+        if (inlineIndex > inlineLastIndex) {
+          inlineNodes.push(text.slice(inlineLastIndex, inlineIndex).replace(/\*/g, ''))
+        }
+
+        inlineNodes.push(
+          <strong key={`${keyPrefix}-bold-${inlineIndex}`} style={{ fontWeight: 700 }}>
+            {boldText}
+          </strong>,
+        )
+
+        inlineLastIndex = inlineIndex + fullMatch.length
+      }
+
+      if (inlineLastIndex < text.length) {
+        inlineNodes.push(text.slice(inlineLastIndex).replace(/\*/g, ''))
+      }
+
+      return inlineNodes.length > 0 ? inlineNodes : [text.replace(/\*/g, '')]
+    }
+
+    const pushAutoLinkedText = (textChunk: string, keyPrefix: string) => {
+      let subLastIndex = 0
+      let autoMatch: RegExpExecArray | null
+
+      while ((autoMatch = autoLinkRegex.exec(textChunk)) !== null) {
+        const [fullMatch] = autoMatch
+        const autoIndex = autoMatch.index
+
+        if (autoIndex > subLastIndex) {
+          nodes.push(...renderInlineBold(textChunk.slice(subLastIndex, autoIndex), `${keyPrefix}-inline-${autoIndex}`))
+        }
+
+        const isEmail = fullMatch.includes('@')
+
+        if (isEmail) {
+          nodes.push(
+            <a
+              key={`${keyPrefix}-email-${autoIndex}`}
+              href={`mailto:${fullMatch}`}
+              style={regularLinkStyle}
+            >
+              {fullMatch}
+            </a>,
+          )
+        } else {
+          const normalizedPhone = fullMatch.replace(/[^\d+]/g, '')
+          const digitCount = normalizedPhone.replace(/\D/g, '').length
+
+          if (digitCount >= 7) {
+            nodes.push(
+              <a
+                key={`${keyPrefix}-phone-${autoIndex}`}
+                href={`tel:${normalizedPhone}`}
+                style={regularLinkStyle}
+              >
+                {fullMatch}
+              </a>,
+            )
+          } else {
+            nodes.push(fullMatch)
+          }
+        }
+
+        subLastIndex = autoIndex + fullMatch.length
+      }
+
+      if (subLastIndex < textChunk.length) {
+        nodes.push(...renderInlineBold(textChunk.slice(subLastIndex), `${keyPrefix}-inline-end`))
+      }
+
+      autoLinkRegex.lastIndex = 0
+    }
+
+    let lastIndex = 0
+    let match: RegExpExecArray | null
+
+    while ((match = linkRegex.exec(normalizedText)) !== null) {
+      const [fullMatch, label, url] = match
+      const matchIndex = match.index
+
+      if (matchIndex > lastIndex) {
+        pushAutoLinkedText(normalizedText.slice(lastIndex, matchIndex), `chunk-${matchIndex}`)
+      }
+
+      const isWhatsapp = /^https?:\/\/wa\.me\/\d+/.test(url)
+      const isAssistantWhatsapp = role === 'assistant' && isWhatsapp
+
+      nodes.push(
+        <a
+          key={`${url}-${matchIndex}`}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={isAssistantWhatsapp
+            ? {
+                display: 'inline-block',
+                marginTop: 8,
+                padding: '6px 10px',
+                borderRadius: 8,
+                background: '#25D366',
+                color: '#ffffff',
+                textDecoration: 'none',
+                fontWeight: 700,
+                fontSize: 12,
+              }
+            : {
+                ...regularLinkStyle,
+              }}
+        >
+          {label}
+        </a>,
+      )
+
+      lastIndex = matchIndex + fullMatch.length
+    }
+
+    if (lastIndex < normalizedText.length) {
+      pushAutoLinkedText(normalizedText.slice(lastIndex), 'chunk-final')
+    }
+
+    return nodes.length > 0 ? nodes : renderInlineBold(normalizedText, 'chunk-plain')
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100svh - 170px)', maxHeight: 'calc(100svh - 170px)' }}>
       <div style={{ padding: '16px 16px 8px' }}>
         <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 24, color: C.brownMid, marginBottom: 4 }}>Alfred</h2>
-        <p style={{ color: C.textLight, fontSize: 13 }}>Chat concierge dell'hotel</p>
+        <p style={{ color: C.textLight, fontSize: 13 }}>{uiTxt.subtitle}</p>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {messages.map((m) => (
+        {messages.length === 0 && (
           <div
-            key={m.id}
             style={{
-              alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
+              alignSelf: 'flex-start',
               maxWidth: '85%',
               padding: '10px 12px',
               borderRadius: 14,
-              background: m.role === 'user' ? C.brownMid : C.creamWhite,
-              color: m.role === 'user' ? '#F2EBDD' : C.textMid,
-              border: m.role === 'user' ? 'none' : `1px solid ${C.creamDark}`,
+              background: C.creamWhite,
+              color: C.textMid,
+              border: `1px solid ${C.creamDark}`,
               boxShadow: '0 2px 8px rgba(30,17,10,0.06)',
               whiteSpace: 'pre-line',
               fontSize: 14,
               lineHeight: 1.45,
             }}
           >
-            {m.text}
+            {uiTxt.welcome}
           </div>
-        ))}
+        )}
+        {messages.map((m) => {
+          if (m.role !== 'user' && m.role !== 'assistant') return null
+
+          const text = getMessageText((m.parts ?? []) as Array<{ type: string; text?: string }>).trim()
+          if (!text) return null
+
+          return (
+            <div
+              key={m.id}
+              style={{
+                alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
+                maxWidth: '85%',
+                padding: '10px 12px',
+                borderRadius: 14,
+                background: m.role === 'user' ? C.brownMid : C.creamWhite,
+                color: m.role === 'user' ? '#F2EBDD' : C.textMid,
+                border: m.role === 'user' ? 'none' : `1px solid ${C.creamDark}`,
+                boxShadow: '0 2px 8px rgba(30,17,10,0.06)',
+                whiteSpace: 'pre-line',
+                fontSize: 14,
+                lineHeight: 1.45,
+              }}
+            >
+              {renderMessageContent(text, m.role)}
+            </div>
+          )
+        })}
+        {error && (
+          <div style={{
+            alignSelf: 'flex-start',
+            maxWidth: '85%',
+            padding: '10px 12px',
+            borderRadius: 14,
+            background: C.creamWhite,
+            color: C.textMid,
+            border: `1px solid ${C.creamDark}`,
+            boxShadow: '0 2px 8px rgba(30,17,10,0.06)',
+            whiteSpace: 'pre-line',
+            fontSize: 14,
+            lineHeight: 1.45,
+          }}>
+            {getReadableErrorMessage(error.message)}
+          </div>
+        )}
         {loading && (
           <div style={{
             alignSelf: 'flex-start',
@@ -1332,26 +1552,42 @@ function AlfredTab() {
         borderTop: `1px solid ${C.creamDark}`,
       }}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input
+          <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') sendMessage()
+            onInput={(e) => {
+              const el = e.currentTarget
+              el.style.height = 'auto'
+              el.style.height = `${Math.min(el.scrollHeight, 120)}px`
             }}
-            placeholder="Scrivi un messaggio ad Alfred..."
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                onSendMessage()
+              }
+            }}
+            placeholder={uiTxt.placeholder}
+            rows={1}
             style={{
               flex: 1,
               borderRadius: 12,
               border: `1px solid ${C.creamDark}`,
               padding: '11px 12px',
-              fontSize: 16,
+              fontSize: 15,
               outline: 'none',
               color: C.textMid,
               background: C.creamWhite,
+              resize: 'none',
+              minHeight: 44,
+              maxHeight: 120,
+              lineHeight: 1.4,
+              overflowY: 'auto',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
             }}
           />
           <button
-            onClick={sendMessage}
+            onClick={onSendMessage}
             disabled={loading}
             style={{
               border: 'none',
@@ -1366,7 +1602,7 @@ function AlfredTab() {
               transition: 'opacity 0.2s',
             }}
           >
-            Invia
+            {uiTxt.send}
           </button>
         </div>
       </div>
@@ -1409,7 +1645,7 @@ export default function GuestGuide() {
       case 'esperienze': return <EsperienzeTab lang={lang} />
       case 'negozi': return <NegoziTab lang={lang} />
       case 'muoversi': return <MuoversiTab lang={lang} />
-      case 'alfred': return <AlfredTab />
+      case 'alfred': return <AlfredTab lang={lang} />
       default: return null
     }
   }
