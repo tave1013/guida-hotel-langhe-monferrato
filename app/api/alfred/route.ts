@@ -34,6 +34,7 @@ const EVENT_SOURCE_URLS = [
   'https://www.comune.asti.it/vivere-comune/eventi',
   'https://visitalba.eu/eventi/',
 ]
+const WEATHER_SOURCE_URLS = ['https://www.3bmeteo.com/meteo/italia']
 
 const SYSTEM_MESSAGES: Record<ConversationLang, { tempError: string; limitError: string }> = {
   it: {
@@ -121,8 +122,9 @@ function getRomeHour() {
 const hotelDomains = parseDomains(process.env.HOTEL_SITE_URL)
 const municipalDomains = parseDomains(process.env.MUNICIPAL_SITES)
 const eventSourceDomains = parseDomains(EVENT_SOURCE_URLS.join(','))
+const weatherSourceDomains = parseDomains(WEATHER_SOURCE_URLS.join(','))
 const municipalAndEventDomains = [...new Set([...municipalDomains, ...eventSourceDomains])]
-const allAllowedDomains = [...new Set([...hotelDomains, ...municipalAndEventDomains])]
+const allAllowedDomains = [...new Set([...hotelDomains, ...municipalAndEventDomains, ...weatherSourceDomains])]
 
 function detectLanguageFromText(text: string): ConversationLang {
   const t = text.toLowerCase()
@@ -281,6 +283,8 @@ function buildSystemPrompt(conversationLang: ConversationLang) {
       ? allAllowedDomains.join(', ')
       : 'sito hotel e siti istituzionali/turistici della zona'
 
+  const meteoCitiesScope = 'Asti, Costigliole d\'Asti, Nizza Monferrato, Alba e località limitrofe entro ~70 km'
+
   const languageLabel: Record<ConversationLang, string> = {
     it: 'Italiano',
     en: 'English',
@@ -402,6 +406,13 @@ REGOLE DI RISPOSTA:
   - Non inventare mai nomi di cantine, aree o attività.
   - Se la richiesta è fuori zona rispetto a Langhe/Monferrato e non hai dati interni, chiedi se l'utente intendeva la zona locale oppure se vuole una ricerca esterna specifica.
 15. Prima di dare una lista di consigli, verifica mentalmente: "Questi nomi sono tutti nel database interno?" Se anche un solo nome è incerto, non inserirlo.
+16. METEO (regola operativa):
+    - Per richieste meteo usa la ricerca live privilegiando 3B Meteo (dominio autorizzato) e città di riferimento: ${meteoCitiesScope}.
+    - Se l'utente chiede meteo senza città esplicita, chiedi una conferma veloce tra queste località vicine.
+    - Se la città richiesta è fuori area, avvisa con tatto che il focus concierge è entro ~70 km e chiedi se vuole comunque una verifica generale.
+17. Concierge proattivo per attività outdoor (es. e-bike, trekking, picnic, tour in vigna):
+    - Dopo aver proposto l'attività, offri in modo naturale un controllo meteo del giorno, con una frase breve (es. "Se vuoi controllo subito il meteo di oggi nella zona").
+    - Se l'utente accetta, esegui la verifica e rispondi con sintesi pratica (condizioni + fascia oraria consigliata + eventuale avviso pioggia/vento).
 `.trim()
 }
 
@@ -431,7 +442,7 @@ export async function POST(req: Request) {
     tools: {
       searchLiveInfo: {
         description:
-          'Ricerca informazioni aggiornate sul sito dell\'hotel e siti comunali (eventi, orari, avvisi, contatti).',
+          'Ricerca informazioni aggiornate su sito hotel, fonti territoriali e meteo (incl. 3B Meteo) per eventi, orari di attrazioni, avvisi e previsioni.',
         inputSchema: z.object({
           query: z.string().min(3),
           focus: z.enum(['hotel', 'events', 'general']).default('general'),
