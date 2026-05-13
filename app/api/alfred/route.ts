@@ -36,26 +36,51 @@ const EVENT_SOURCE_URLS = [
 ]
 const WEATHER_SOURCE_URLS = ['https://www.3bmeteo.com/meteo/italia']
 
-const SYSTEM_MESSAGES: Record<ConversationLang, { tempError: string; limitError: string }> = {
+const SYSTEM_MESSAGES: Record<ConversationLang, { tempError: string; limitErrors: string[]; limitFollowUp: string }> = {
   it: {
     tempError: 'Al momento sto riordinando i registri, riprova tra un istante.',
-    limitError: `Hai raggiunto il limite giornaliero di ${MAX_QUESTIONS_PER_IP} domande. Scrivici su WhatsApp per assistenza diretta oppure riprova domani.`,
+    limitErrors: [
+      `Per oggi mi fermo qui — ho raggiunto il massimo di conversazioni che riesco a gestire in questa giornata. 🙏\n\nSe hai ancora bisogno di aiuto, lo staff è sempre disponibile: puoi chiamare il +39 0141 966521 o scriverci su WhatsApp. A presto, spero di esserti stato utile!`,
+      `Mi dispiace, ma per oggi devo salutarti — ho esaurito le mie energie per questa giornata! 😊\n\nPer qualsiasi altra cosa, i miei colleghi in reception sono pronti ad aiutarti: +39 0141 966521 oppure WhatsApp. Ci vediamo domani!`,
+      `Eh, abbiamo chiacchierato parecchio oggi! Per adesso devo fermarmi, ma torno disponibile domani.\n\nSe hai urgenze, la reception è lì per te: chiamaci al +39 0141 966521 o scrivici su WhatsApp. È stato un piacere! 🎩`,
+    ],
+    limitFollowUp: `Sono ancora in pausa per oggi, mi spiace! 😊 Lo staff in reception può aiutarti subito: +39 0141 966521 o WhatsApp. A domani!`,
   },
   en: {
     tempError: 'I am tidying up the registers right now, please try again in a moment.',
-    limitError: `You have reached the daily limit of ${MAX_QUESTIONS_PER_IP} questions. Please contact us on WhatsApp for direct assistance or try again tomorrow.`,
+    limitErrors: [
+      `I've reached my limit for today — time to rest! 🙏\n\nIf you still need help, the team is ready for you: call +39 0141 966521 or reach us on WhatsApp. Hope I've been helpful — see you tomorrow!`,
+      `That's all from me for today, I'm afraid! 😊\n\nFor anything else, reception is right there: +39 0141 966521 or WhatsApp. Take care and see you tomorrow!`,
+      `We've had quite a chat today! I need to sign off for now, but I'll be back tomorrow.\n\nIn the meantime, the team at reception can help: +39 0141 966521 or WhatsApp. It's been a pleasure! 🎩`,
+    ],
+    limitFollowUp: `Still on my break for today, sorry! 😊 Reception can help you right away: +39 0141 966521 or WhatsApp. See you tomorrow!`,
   },
   fr: {
     tempError: "Je suis en train d'organiser les registres, veuillez réessayer dans un instant.",
-    limitError: `Vous avez atteint la limite quotidienne de ${MAX_QUESTIONS_PER_IP} questions. Veuillez nous contacter sur WhatsApp pour une assistance directe ou réessayer demain.`,
+    limitErrors: [
+      `Pour aujourd'hui, je dois m'arrêter ici — j'ai atteint ma limite de conversations! 🙏\n\nSi vous avez encore besoin d'aide, l'équipe est là pour vous: +39 0141 966521 ou WhatsApp. À bientôt, j'espère avoir été utile!`,
+      `C'est tout pour moi aujourd'hui! 😊\n\nPour toute autre question, la réception est disponible: +39 0141 966521 ou WhatsApp. À demain!`,
+      `Nous avons bien bavardé aujourd'hui! Je dois m'arrêter pour l'instant, mais je reviens demain.\n\nEn attendant, l'équipe en réception peut vous aider: +39 0141 966521 ou WhatsApp. Ce fut un plaisir! 🎩`,
+    ],
+    limitFollowUp: `Je suis toujours en pause pour aujourd'hui, désolé! 😊 La réception peut vous aider tout de suite: +39 0141 966521 ou WhatsApp. À demain!`,
   },
   de: {
     tempError: 'Ich ordne gerade die Register, bitte versuchen Sie es in einem Moment erneut.',
-    limitError: `Sie haben das tägliche Limit von ${MAX_QUESTIONS_PER_IP} Fragen erreicht. Bitte kontaktieren Sie uns per WhatsApp für direkte Unterstützung oder versuchen Sie es morgen erneut.`,
+    limitErrors: [
+      `Für heute muss ich mich verabschieden — ich habe mein Tageslimit erreicht! 🙏\n\nFür weitere Hilfe steht Ihnen das Team gerne zur Verfügung: +39 0141 966521 oder WhatsApp. Bis morgen, ich hoffe geholfen zu haben!`,
+      `Das war es für heute von mir! 😊\n\nFür alles weitere ist die Rezeption für Sie da: +39 0141 966521 oder WhatsApp. Auf Wiedersehen morgen!`,
+      `Wir haben heute viel geplaudert! Für jetzt muss ich mich ausklinken, aber morgen bin ich wieder da.\n\nInzwischen hilft Ihnen das Team an der Rezeption: +39 0141 966521 oder WhatsApp. Es war mir ein Vergnügen! 🎩`,
+    ],
+    limitFollowUp: `Ich bin heute noch in der Pause, tut mir leid! 😊 Die Rezeption kann Ihnen sofort helfen: +39 0141 966521 oder WhatsApp. Bis morgen!`,
   },
   es: {
     tempError: 'En este momento estoy ordenando los registros, inténtalo de nuevo en un instante.',
-    limitError: `Has alcanzado el límite diario de ${MAX_QUESTIONS_PER_IP} preguntas. Escríbenos por WhatsApp para asistencia directa o vuelve a intentarlo mañana.`,
+    limitErrors: [
+      `Por hoy tengo que despedirme — ¡he llegado a mi límite de conversaciones! 🙏\n\nSi aún necesitas ayuda, el equipo está disponible: +39 0141 966521 o WhatsApp. ¡Hasta mañana, espero haber sido de ayuda!`,
+      `¡Eso es todo por hoy de mi parte! 😊\n\nPara cualquier otra cosa, la recepción está ahí para ti: +39 0141 966521 o WhatsApp. ¡Hasta mañana!`,
+      `¡Hemos charlado mucho hoy! Por ahora debo desconectarme, pero mañana vuelvo.\n\nMientras tanto, el equipo en recepción puede ayudarte: +39 0141 966521 o WhatsApp. ¡Ha sido un placer! 🎩`,
+    ],
+    limitFollowUp: `¡Todavía estoy en pausa por hoy, lo siento! 😊 Recepción puede ayudarte enseguida: +39 0141 966521 o WhatsApp. ¡Hasta mañana!`,
   },
 }
 
@@ -66,6 +91,30 @@ function getClientIp(req: Request) {
   }
 
   return req.headers.get('x-real-ip')?.trim() || 'unknown'
+}
+
+function pickRandom<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+
+function hasAlreadyHitLimit(messages: UIMessage[]): boolean {
+  // Check if there's already an assistant message that looks like a limit message
+  // We track this by checking if the last assistant message contains a known limit signal
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const msg = messages[i]
+    if (msg.role === 'assistant') {
+      const maybeParts = (msg as { parts?: Array<{ type?: string; text?: string }> }).parts
+      const text = Array.isArray(maybeParts)
+        ? maybeParts.filter(p => p?.type === 'text').map(p => p.text).join(' ')
+        : (msg as { content?: string }).content ?? ''
+      // Detect if previous assistant message was already a farewell/limit message
+      if (/reception|0141 966521|WhatsApp|à bientôt|bis morgen|mañana|domani|tomorrow|a presto/i.test(text)) {
+        return true
+      }
+      break
+    }
+  }
+  return false
 }
 
 function consumeQuestion(ip: string) {
@@ -440,7 +489,9 @@ export async function POST(req: Request) {
     const limit = consumeQuestion(ip)
 
     if (!limit.allowed) {
-      return Response.json({ error: sys.limitError }, { status: 429 })
+      const alreadyWarned = hasAlreadyHitLimit(messages)
+      const limitMsg = alreadyWarned ? sys.limitFollowUp : pickRandom(sys.limitErrors)
+      return Response.json({ error: limitMsg }, { status: 429 })
     }
   }
 
