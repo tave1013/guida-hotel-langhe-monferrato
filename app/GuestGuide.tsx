@@ -1709,7 +1709,14 @@ function AlfredTab({
         )}
         {loading && (
           <>
-            {loadingElapsed < 5000 && (
+            {(() => {
+              const hasAssistantContent = messages.some((m) => {
+                if (m.role !== 'assistant') return false
+                const text = getMessageText((m.parts ?? []) as Array<{ type: string; text?: string }>).trim()
+                return text.length > 0
+              })
+              return !hasAssistantContent
+            })() && loadingElapsed < 5000 && (
               <div style={{
                 alignSelf: 'flex-start',
                 maxWidth: '85%',
@@ -1732,7 +1739,14 @@ function AlfredTab({
                 ))}
               </div>
             )}
-            {loadingElapsed >= 5000 && selectedLoadingMessage && (
+            {(() => {
+              const hasAssistantContent = messages.some((m) => {
+                if (m.role !== 'assistant') return false
+                const text = getMessageText((m.parts ?? []) as Array<{ type: string; text?: string }>).trim()
+                return text.length > 0
+              })
+              return !hasAssistantContent
+            })() && loadingElapsed >= 5000 && selectedLoadingMessage && (
               <div style={{
                 alignSelf: 'flex-start',
                 maxWidth: '85%',
