@@ -1225,7 +1225,7 @@ const ALFRED_UI_TEXT: Record<Lang, {
 }> = {
   it: {
     subtitle: "Chat concierge dell'hotel",
-    welcome: 'Ciao! Sono Alfred, il tuo concierge personale! 👋\nCome posso aiutarti?',
+    welcome: 'Ciao! Mi chiamo Alfred e sono il tuo concierge personale! 👋\nCome posso aiutarti?',
     placeholder: 'Scrivi un messaggio...',
     send: 'Invia',
     tempError: 'Al momento sto riordinando i registri, riprova tra un istante.',
@@ -1238,7 +1238,7 @@ const ALFRED_UI_TEXT: Record<Lang, {
   },
   en: {
     subtitle: 'Hotel concierge chat',
-    welcome: "Hi! I'm Alfred 👋\nHow can I help you during your stay?",
+    welcome: 'Hi! My name is Alfred and I am your personal concierge! 👋\nHow can I help you during your stay?',
     placeholder: 'Type a message...',
     send: 'Send',
     tempError: 'I am tidying up the registers right now, please try again in a moment.',
@@ -1251,7 +1251,7 @@ const ALFRED_UI_TEXT: Record<Lang, {
   },
   fr: {
     subtitle: "Chat concierge de l'hôtel",
-    welcome: 'Bonjour ! Je suis Alfred 👋\nComment puis-je vous aider pendant votre séjour ?',
+    welcome: 'Bonjour ! Je m\'appelle Alfred et je suis votre concierge personnel ! 👋\nComment puis-je vous aider pendant votre séjour ?',
     placeholder: 'Écrivez un message...',
     send: 'Envoyer',
     tempError: "Je suis en train d'organiser les registres, veuillez réessayer dans un instant.",
@@ -1264,7 +1264,7 @@ const ALFRED_UI_TEXT: Record<Lang, {
   },
   de: {
     subtitle: 'Hotel-Concierge-Chat',
-    welcome: 'Hallo! Ich bin Alfred 👋\nWie kann ich Ihnen während Ihres Aufenthalts helfen?',
+    welcome: 'Hallo! Ich heiße Alfred und bin Ihr persönlicher Concierge! 👋\nWie kann ich Ihnen während Ihres Aufenthalts helfen?',
     placeholder: 'Nachricht eingeben...',
     send: 'Senden',
     tempError: 'Ich ordne gerade die Register, bitte versuchen Sie es in einem Moment erneut.',
@@ -1277,7 +1277,7 @@ const ALFRED_UI_TEXT: Record<Lang, {
   },
   es: {
     subtitle: 'Chat de conserjería del hotel',
-    welcome: '¡Hola! Soy Alfred 👋\n¿Cómo puedo ayudarte durante tu estancia?',
+    welcome: '¡Hola! Me llamo Alfred y soy tu conserje personal! 👋\n¿Cómo puedo ayudarte durante tu estancia?',
     placeholder: 'Escribe un mensaje...',
     send: 'Enviar',
     tempError: 'En este momento estoy ordenando los registros, inténtalo de nuevo en un instante.',

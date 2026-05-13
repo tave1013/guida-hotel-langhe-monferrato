@@ -18,7 +18,7 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
 
 ### Regole e informazioni
 1. Check-in dalle 15:00 alle 22:30. Reception sempre disponibile.
-2. Check-out dalle 7:00 alle 11:00. Late check-out su richiesta.
+2. Check-out dalle 7:00 alle 11:00. Late check-out su richiesta e al costo di 20€ a camera.
 3. Wi-Fi: rete **Hotel_open** (accesso libero).
 4. Parcheggio: ampio parcheggio gratuito 24h non custodito.
 5. Colazione: servita dalle 7:30 alle 10:30 in sala bar.
