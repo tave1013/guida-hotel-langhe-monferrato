@@ -1867,6 +1867,19 @@ const LANGS = [
   { code: 'es' as Lang, label: 'Español', flag: '🇪🇸' },
 ]
 
+const TAB_TO_PATH: Record<string, string> = {
+  home: '/',
+  soggiorno: '/soggiorno',
+  esperienze: '/esperienze',
+  negozi: '/negozi',
+  muoversi: '/muoversi',
+  alfred: '/alfred',
+}
+
+const PATH_TO_TAB: Record<string, string> = Object.fromEntries(
+  Object.entries(TAB_TO_PATH).map(([tab, path]) => [path, tab])
+)
+
 export default function GuestGuide() {
   const [tab, setTab] = useState('home')
   const [lang, setLang] = useState<Lang>('it')
@@ -1876,6 +1889,35 @@ export default function GuestGuide() {
   const headerTxt = T.header[lang]
   const navTxt = T.nav[lang]
   const isAlfredTab = tab === 'alfred'
+
+  // Sync tab with URL on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const path = window.location.pathname
+    const initialTab = PATH_TO_TAB[path] ?? 'home'
+    setTab(initialTab)
+  }, [])
+
+  // Update URL when tab changes
+  const navigateTab = React.useCallback((newTab: string) => {
+    setTab(newTab)
+    if (typeof window !== 'undefined') {
+      const path = TAB_TO_PATH[newTab] ?? '/'
+      window.history.pushState(null, '', path)
+    }
+  }, [])
+
+  // Handle browser back/forward
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window === 'undefined') return
+      const path = window.location.pathname
+      const restoredTab = PATH_TO_TAB[path] ?? 'home'
+      setTab(restoredTab)
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -1909,12 +1951,12 @@ export default function GuestGuide() {
 
   const renderTab = () => {
     switch (tab) {
-      case 'home': return <HomeTab setTab={setTab} lang={lang} />
+      case 'home': return <HomeTab setTab={navigateTab} lang={lang} />
       case 'soggiorno': return <SoggiornoTab lang={lang} />
       case 'esperienze': return <EsperienzeTab lang={lang} />
       case 'negozi': return <NegoziTab lang={lang} />
       case 'muoversi': return <MuoversiTab lang={lang} />
-      case 'alfred': return <AlfredTab lang={lang} hasSeenWelcome={hasSeenAlfredWelcome} onWelcomeShown={markAlfredWelcomeSeen} onBackHome={() => setTab('home')} avatarSrc={alfredAvatarSrc} onAvatarError={handleAlfredAvatarError} />
+      case 'alfred': return <AlfredTab lang={lang} hasSeenWelcome={hasSeenAlfredWelcome} onWelcomeShown={markAlfredWelcomeSeen} onBackHome={() => navigateTab('home')} avatarSrc={alfredAvatarSrc} onAvatarError={handleAlfredAvatarError} />
       default: return null
     }
   }
@@ -2038,7 +2080,7 @@ export default function GuestGuide() {
           zIndex: 100,
         }}>
           {NAV_ITEMS.map(({ id, key, Icon }) => (
-            <button key={id} onClick={() => setTab(id)} style={{
+            <button key={id} onClick={() => navigateTab(id)} style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center',
               flex: 1, minWidth: 0,
               gap: 3, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 2px',
