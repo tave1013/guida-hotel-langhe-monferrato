@@ -1221,6 +1221,7 @@ const ALFRED_UI_TEXT: Record<Lang, {
   placeholder: string
   send: string
   tempError: string
+  loadingMessages: string[]
 }> = {
   it: {
     subtitle: "Chat concierge dell'hotel",
@@ -1228,6 +1229,12 @@ const ALFRED_UI_TEXT: Record<Lang, {
     placeholder: 'Scrivi un messaggio...',
     send: 'Invia',
     tempError: 'Al momento sto riordinando i registri, riprova tra un istante.',
+    loadingMessages: [
+      'Sto recuperando le informazioni per te...',
+      'Un attimo di pazienza, sto controllando...',
+      'Fammi un secondo, sto cercando il meglio per te...',
+      'Sto verificando i dettagli...',
+    ],
   },
   en: {
     subtitle: 'Hotel concierge chat',
@@ -1235,6 +1242,12 @@ const ALFRED_UI_TEXT: Record<Lang, {
     placeholder: 'Type a message...',
     send: 'Send',
     tempError: 'I am tidying up the registers right now, please try again in a moment.',
+    loadingMessages: [
+      'Gathering information for you...',
+      'One moment, checking that for you...',
+      'Give me a second, finding the best for you...',
+      'Verifying the details...',
+    ],
   },
   fr: {
     subtitle: "Chat concierge de l'hôtel",
@@ -1242,6 +1255,12 @@ const ALFRED_UI_TEXT: Record<Lang, {
     placeholder: 'Écrivez un message...',
     send: 'Envoyer',
     tempError: "Je suis en train d'organiser les registres, veuillez réessayer dans un instant.",
+    loadingMessages: [
+      'Je récupère les informations pour vous...',
+      'Un instant, je vérifie cela...',
+      'Donnez-moi une seconde, je trouve le mieux pour vous...',
+      'Je vérifie les détails...',
+    ],
   },
   de: {
     subtitle: 'Hotel-Concierge-Chat',
@@ -1249,6 +1268,12 @@ const ALFRED_UI_TEXT: Record<Lang, {
     placeholder: 'Nachricht eingeben...',
     send: 'Senden',
     tempError: 'Ich ordne gerade die Register, bitte versuchen Sie es in einem Moment erneut.',
+    loadingMessages: [
+      'Ich hole die Informationen für Sie...',
+      'Einen Moment, ich überprüfe das...',
+      'Geben Sie mir eine Sekunde, ich finde das Beste für Sie...',
+      'Ich verifiziere die Details...',
+    ],
   },
   es: {
     subtitle: 'Chat de conserjería del hotel',
@@ -1256,6 +1281,12 @@ const ALFRED_UI_TEXT: Record<Lang, {
     placeholder: 'Escribe un mensaje...',
     send: 'Enviar',
     tempError: 'En este momento estoy ordenando los registros, inténtalo de nuevo en un instante.',
+    loadingMessages: [
+      'Estoy recabando información para ti...',
+      'Un momento, déjame verificar eso...',
+      'Dame un segundo, estoy buscando lo mejor para ti...',
+      'Estoy verificando los detalles...',
+    ],
   },
 }
 
@@ -1291,8 +1322,11 @@ function AlfredTab({
   const [input, setInput] = useState('')
   const [showWelcome, setShowWelcome] = useState(hasSeenWelcome)
   const [animateWelcome, setAnimateWelcome] = useState(false)
+  const [loadingElapsed, setLoadingElapsed] = useState(0)
+  const [selectedLoadingMessage, setSelectedLoadingMessage] = useState('')
   const loading = status === 'submitted' || status === 'streaming'
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const loadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (hasSeenWelcome) {
@@ -1314,6 +1348,34 @@ function AlfredTab({
       window.clearTimeout(timer)
     }
   }, [hasSeenWelcome, onWelcomeShown])
+
+  useEffect(() => {
+    if (!loading) {
+      setLoadingElapsed(0)
+      setSelectedLoadingMessage('')
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current)
+        loadingTimerRef.current = null
+      }
+      return
+    }
+
+    setLoadingElapsed(0)
+    
+    loadingTimerRef.current = window.setTimeout(() => {
+      const messages = uiTxt.loadingMessages
+      const randomMessage = messages[Math.floor(Math.random() * messages.length)]
+      setSelectedLoadingMessage(randomMessage)
+      setLoadingElapsed(5000)
+    }, 5000)
+
+    return () => {
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current)
+        loadingTimerRef.current = null
+      }
+    }
+  }, [loading, uiTxt.loadingMessages])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -1646,27 +1708,50 @@ function AlfredTab({
           </div>
         )}
         {loading && (
-          <div style={{
-            alignSelf: 'flex-start',
-            maxWidth: '85%',
-            padding: '10px 14px',
-            borderRadius: 14,
-            background: C.creamWhite,
-            border: `1px solid ${C.creamDark}`,
-            boxShadow: '0 2px 8px rgba(30,17,10,0.06)',
-            display: 'flex',
-            gap: 5,
-            alignItems: 'center',
-          }}>
-            {[0, 1, 2].map((i) => (
-              <span key={i} style={{
-                width: 7, height: 7, borderRadius: '50%',
-                background: C.brownMid, opacity: 0.4,
-                animation: `alfredDot 1.2s ${i * 0.2}s infinite ease-in-out`,
-                display: 'inline-block',
-              }} />
-            ))}
-          </div>
+          <>
+            {loadingElapsed < 5000 && (
+              <div style={{
+                alignSelf: 'flex-start',
+                maxWidth: '85%',
+                padding: '10px 14px',
+                borderRadius: 14,
+                background: C.creamWhite,
+                border: `1px solid ${C.creamDark}`,
+                boxShadow: '0 2px 8px rgba(30,17,10,0.06)',
+                display: 'flex',
+                gap: 5,
+                alignItems: 'center',
+              }}>
+                {[0, 1, 2].map((i) => (
+                  <span key={i} style={{
+                    width: 7, height: 7, borderRadius: '50%',
+                    background: C.brownMid, opacity: 0.4,
+                    animation: `alfredDot 1.2s ${i * 0.2}s infinite ease-in-out`,
+                    display: 'inline-block',
+                  }} />
+                ))}
+              </div>
+            )}
+            {loadingElapsed >= 5000 && selectedLoadingMessage && (
+              <div style={{
+                alignSelf: 'flex-start',
+                maxWidth: '85%',
+                padding: '10px 12px',
+                borderRadius: 14,
+                background: C.creamWhite,
+                color: C.textMid,
+                border: `1px solid ${C.creamDark}`,
+                boxShadow: '0 2px 8px rgba(30,17,10,0.06)',
+                whiteSpace: 'pre-line',
+                fontSize: 14,
+                lineHeight: 1.45,
+                fontStyle: 'italic',
+                opacity: 0.8,
+              }}>
+                {selectedLoadingMessage}
+              </div>
+            )}
+          </>
         )}
         <div ref={messagesEndRef} />
       </div>
