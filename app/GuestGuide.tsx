@@ -1479,7 +1479,27 @@ function AlfredTab({ lang }: { lang: Lang }) {
       }}
     >
       <div style={{ padding: '16px 16px 8px' }}>
-        <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 24, color: C.brownMid, marginBottom: 4 }}>Alfred</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+          <div
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: '50%',
+              background: '#FFFFFF',
+              border: `1px solid ${C.creamDark}`,
+              boxShadow: '0 2px 8px rgba(30,17,10,0.10)',
+              overflow: 'hidden',
+              flexShrink: 0,
+            }}
+          >
+            <img
+              src="/Alfred.webp"
+              alt="Alfred"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </div>
+          <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 24, color: C.brownMid }}>Alfred</h2>
+        </div>
         <p style={{ color: C.textLight, fontSize: 13 }}>{uiTxt.subtitle}</p>
       </div>
 
