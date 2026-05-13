@@ -198,10 +198,55 @@ function extractLastUserText(messages: UIMessage[]): string {
   return ''
 }
 
+function extractUserTextsNewestFirst(messages: UIMessage[]): string[] {
+  const userTexts: string[] = []
+
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    const msg = messages[i]
+    if (msg.role !== 'user') continue
+
+    const maybeParts = (msg as { parts?: Array<{ type?: string; text?: string }> }).parts
+    if (Array.isArray(maybeParts)) {
+      const text = maybeParts
+        .filter((part) => part?.type === 'text' && typeof part?.text === 'string')
+        .map((part) => part.text)
+        .join(' ')
+        .trim()
+
+      if (text) {
+        userTexts.push(text)
+        continue
+      }
+    }
+
+    const maybeText = (msg as { content?: string }).content
+    if (typeof maybeText === 'string' && maybeText.trim()) {
+      userTexts.push(maybeText.trim())
+    }
+  }
+
+  return userTexts
+}
+
 function detectConversationLanguage(messages: UIMessage[]): ConversationLang {
-  const lastUserText = extractLastUserText(messages)
-  if (!lastUserText) return 'it'
-  return detectLanguageFromText(lastUserText)
+  const userTexts = extractUserTextsNewestFirst(messages)
+  if (userTexts.length === 0) return 'it'
+
+  const latest = userTexts[0]
+  const latestLang = detectLanguageFromText(latest)
+  if (latestLang !== 'it') return latestLang
+
+  const latestWordCount = latest.split(/\s+/).filter(Boolean).length
+  const isShortFollowUp = latestWordCount <= 4
+
+  if (isShortFollowUp) {
+    for (let i = 1; i < userTexts.length; i += 1) {
+      const prevLang = detectLanguageFromText(userTexts[i])
+      if (prevLang !== 'it') return prevLang
+    }
+  }
+
+  return 'it'
 }
 
 function loadCompleteKnowledgeText() {
@@ -256,6 +301,7 @@ Parla come un padrone di casa moderno: cordiale, professionale, terra-terra.
 LINGUA OBBLIGATORIA ORA: ${languageLabel[conversationLang]} (${conversationLang}).
 Devi rispondere SOLO in ${languageLabel[conversationLang]} per questa risposta.
 Non usare italiano se la lingua corrente non è it.
+Ignora completamente lingua interfaccia, bandiera e impostazioni UI: conta solo la lingua dell'utente.
 Regola lingua (fondamentale): rispondi SEMPRE nella stessa lingua dell'ultimo messaggio utente (language mirroring), anche se l'interfaccia è in un'altra lingua.
 Se l'utente cambia lingua durante la conversazione, adeguati subito.
 
