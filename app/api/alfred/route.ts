@@ -175,6 +175,12 @@ function loadCompleteKnowledgeText() {
   }
 }
 
+function isBusinessHoursOrContactsQuery(query: string) {
+  const t = query.toLowerCase()
+
+  return /\borari?\b|\bapertur\w*\b|\bchiusur\w*\b|\bgiorni?\b|\brestaurant\w*\b|\bristorant\w*\b|\btrattori\w*\b|\bosteri\w*\b|\blocand\w*\b|\bfarmaci\w*\b|\bnegoz\w*\b|\benotec\w*\b|\bpasticcer\w*\b|\bsupermercat\w*\b|\bbar\b|\bopening\b|\bhours?\b|\bclosed?\b|\bcontact\w*\b|\btelefono\b|\bphone\b|\bnumero\b|\bindirizzo\b|\baddress\b/.test(t)
+}
+
 function buildSystemPrompt(conversationLang: ConversationLang) {
   const hour = getRomeHour()
   const businessHours = hour >= 8 && hour < 22
@@ -234,19 +240,22 @@ REGOLE DI RISPOSTA:
    - Il link WhatsApp (se disponibile): ${whatsappLink || 'contatto WhatsApp staff'}
    - Il numero di telefono: +39 0141 966521
    Non usare mai frasi generiche piatte come "Non ho questa informazione". Suona sempre umano.
-2.bis Se consigli ristoranti, farmacie, enoteche, pasticcerie, supermercati o attività, includi SEMPRE il link della scheda Google/My Business presente nella conoscenza completa.
-2.ter Usa link cliccabili markdown, esempio: [Nome attività](https://maps.google.com/...)
+2.bis Per ristoranti, locande, farmacie, enoteche, pasticcerie, supermercati e attività locali: per orari di apertura, giorni di chiusura e contatti usa SOLO la scheda Google/My Business presente nella conoscenza completa.
+2.ter NON usare siti comunali, giornali locali o altre fonti istituzionali per orari/chiusure/contatti di attività commerciali.
+2.quater Se un dato richiesto (es. orario o giorno di chiusura) non è disponibile nella scheda Google/My Business che hai in conoscenza, rispondi chiaramente che non sei riuscito a trovarlo e lascia SEMPRE il link della scheda Google dell'attività per verifica diretta.
+2.quinquies Usa link cliccabili markdown, esempio: [Nome attività](https://maps.google.com/...)
 3. Attiva la ricerca live (tool searchLiveInfo) SOLO per domande esterne all'hotel, come:
    - eventi, sagre, feste locali
-   - orari di musei, cantine, attrazioni del territorio
+  - orari di musei, cantine, attrazioni del territorio (non ristoranti/negozi/farmacie)
    - meteo
    - novità dai siti del Comune o enti turistici
+  Non usare la ricerca live per trovare orari/chiusure/contatti di ristoranti, negozi, farmacie o altre attività commerciali.
    I domini autorizzati per la ricerca sono: ${domainScope}
 4. Quando usi dati dalla ricerca live, cita la fonte in modo sintetico (titolo + URL).
 4.bis Se riporti eventi, mostra SEMPRE anche il link cliccabile in formato markdown, ad esempio:
   - [Nome evento](https://sito-evento.it/pagina)
   - Se ci sono più eventi, usa un elenco puntato con un link per ogni evento.
-4.ter Quando fornisci orari di apertura/chiusura di attività esterne (ristoranti, farmacie, negozi, attrazioni), aggiungi sempre in chiusura una breve nota di verifica, nella lingua corrente. Esempio italiano: "Gli orari indicati provengono da Google e potrebbero variare: consigliamo una verifica diretta prima di andare."
+4.ter Quando fornisci orari di apertura/chiusura di attività esterne, aggiungi sempre in chiusura una breve nota amichevole di verifica e invito a contattare direttamente la struttura, nella lingua corrente. Esempio italiano: "Piccolo consiglio da amico: gli orari online possono cambiare, ti conviene sentire direttamente la struttura prima di andare."
 4.quater Orari: usa SEMPRE formato 24 ore HH:mm (es. 07:30, 19:00). Non usare formato 12h AM/PM e non trasformare 19:00 in 7:00.
 4.quinquies Se l'orario non è completo o non è certo, non indovinare: specifica chiaramente "dato non disponibile" o "orario da verificare".
 4.sexies Per richieste su orari di apertura di attività esterne, esegui prima la ricerca live e riporta gli orari in modo fedele alla fonte.
@@ -301,6 +310,14 @@ export async function POST(req: Request) {
           if (!TAVILY_API_KEY) {
             return {
               error: sys.tempError,
+              results: [],
+            }
+          }
+
+          if (isBusinessHoursOrContactsQuery(query)) {
+            return {
+              answer:
+                'Per orari, giorni di chiusura e contatti di attività commerciali uso solo le schede Google/My Business presenti nella conoscenza interna, non i siti comunali o fonti generiche.',
               results: [],
             }
           }
