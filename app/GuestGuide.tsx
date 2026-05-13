@@ -1583,6 +1583,14 @@ function AlfredTab({
     return allNodes.length > 0 ? allNodes : renderInlineBold(normalizedText, 'fallback')
   }
 
+  const lastMessage = messages[messages.length - 1]
+  const lastAssistantText =
+    lastMessage?.role === 'assistant'
+      ? getMessageText((lastMessage.parts ?? []) as Array<{ type: string; text?: string }>).trim()
+      : ''
+  const shouldHideLoadingIndicator =
+    loading && status === 'streaming' && lastMessage?.role === 'assistant' && lastAssistantText.length > 0
+
   return (
     <div
       style={{
@@ -1706,16 +1714,9 @@ function AlfredTab({
             {getReadableErrorMessage(error.message)}
           </div>
         )}
-        {loading && (
+        {loading && !shouldHideLoadingIndicator && (
           <>
-            {(() => {
-              const hasAssistantContent = messages.some((m) => {
-                if (m.role !== 'assistant') return false
-                const text = getMessageText((m.parts ?? []) as Array<{ type: string; text?: string }>).trim()
-                return text.length > 0
-              })
-              return !hasAssistantContent
-            })() && loadingElapsed < 5000 && (
+            {loadingElapsed < 5000 && (
               <div style={{
                 alignSelf: 'flex-start',
                 maxWidth: '85%',
@@ -1738,14 +1739,7 @@ function AlfredTab({
                 ))}
               </div>
             )}
-            {(() => {
-              const hasAssistantContent = messages.some((m) => {
-                if (m.role !== 'assistant') return false
-                const text = getMessageText((m.parts ?? []) as Array<{ type: string; text?: string }>).trim()
-                return text.length > 0
-              })
-              return !hasAssistantContent
-            })() && loadingElapsed >= 5000 && selectedLoadingMessage && (
+            {loadingElapsed >= 5000 && selectedLoadingMessage && (
               <div style={{
                 alignSelf: 'flex-start',
                 maxWidth: '85%',
