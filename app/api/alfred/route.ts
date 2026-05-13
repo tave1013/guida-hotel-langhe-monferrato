@@ -127,12 +127,33 @@ const allAllowedDomains = [...new Set([...hotelDomains, ...municipalAndEventDoma
 function detectLanguageFromText(text: string): ConversationLang {
   const t = text.toLowerCase()
 
-  if (/(\bwie\b|\bund\b|\bdanke\b|\bguten\b|\bzur\b|\bich\b|\bbitte\b)/i.test(t)) return 'de'
-  if (/(\bbonjour\b|\bmerci\b|\bavec\b|\bvous\b|\bété\b|\bpour\b|\bquel\b)/i.test(t)) return 'fr'
-  if (/(\bhola\b|\bgracias\b|\bpor\b|\bpara\b|\busted\b|\bdónde\b|\bcuándo\b)/i.test(t)) return 'es'
-  if (/(\bhello\b|\bthanks\b|\bplease\b|\bwhere\b|\bwhen\b|\bhow\b|\bcan i\b)/i.test(t)) return 'en'
+  const scores: Record<ConversationLang, number> = { it: 0, en: 0, fr: 0, de: 0, es: 0 }
 
-  return 'it'
+  const deWords = /\b(wie|und|danke|guten|zur|ich|bitte|ist|sind|haben|können|was|wann|wo|gibt|noch|auch|aber|oder|nicht|ein|eine|für|mit|von|auf|das|die|der|des|beim|hotel|zimmer|frühstück|parkplatz|hilfe|brauche|möchte|welche|welcher|welches|würde)\b/gi
+  const deMatches = t.match(deWords)
+  scores.de = deMatches ? deMatches.length : 0
+
+  const frWords = /\b(bonjour|merci|avec|vous|pour|quel|quelle|quels|quelles|est|sont|avez|pouvez|comment|où|quand|petit|déjeuner|chambre|hôtel|parking|bonsoir|s'il|plaît|je|mon|ma|mes|les|des|une|pas|mais|ou|aussi|bien|plus|très|leur|leurs|nous|votre|vos)\b/gi
+  const frMatches = t.match(frWords)
+  scores.fr = frMatches ? frMatches.length : 0
+
+  const esWords = /\b(hola|gracias|por|para|usted|dónde|donde|cuándo|cuando|cómo|como|hay|tiene|tienen|puedo|puede|podría|quiero|quisiera|habitación|habitaciones|hotel|desayuno|estacionamiento|buenos|buenas|días|tardes|noches|favor|me|mi|qué|que|con|los|las|del|una|también|pero|más|muy|si|no)\b/gi
+  const esMatches = t.match(esWords)
+  scores.es = esMatches ? esMatches.length : 0
+
+  const enWords = /\b(hello|hi|hey|thanks|thank|please|where|when|how|what|which|who|can|could|would|should|is|are|have|has|do|does|the|and|for|with|from|your|our|my|its|any|some|this|that|there|here|room|rooms|breakfast|check|wifi|restaurant|booking|reservation|available|early|late|need|want|like|get|time|day|night|week|price|cost|i'm|i'd|i'll|i've|it's|don't|doesn't|isn't|aren't)\b/gi
+  const enMatches = t.match(enWords)
+  scores.en = enMatches ? enMatches.length : 0
+
+  const itWords = /\b(ciao|salve|grazie|prego|dove|quando|come|cosa|quale|quali|ho|hai|ha|abbiamo|avete|sono|sei|è|siamo|siete|posso|puoi|può|voglio|vorrei|camera|camere|colazione|parcheggio|orario|orari|prenotazione|disponibile|benvenuto|buongiorno|buonasera|buonanotte|mi|mio|mia|il|lo|la|gli|le|un|una|del|della|dei|delle|per|con|da|di|in|a|che|non|si|ma|anche|più|molto|tutto|tutti|questo|questa|questi|queste)\b/gi
+  const itMatches = t.match(itWords)
+  scores.it = itMatches ? itMatches.length : 0
+
+  const best = (Object.entries(scores) as [ConversationLang, number][])
+    .sort((a, b) => b[1] - a[1])[0]
+
+  if (best[1] === 0) return 'it'
+  return best[0]
 }
 
 function extractLastUserText(messages: UIMessage[]): string {
