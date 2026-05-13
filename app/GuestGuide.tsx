@@ -1468,13 +1468,22 @@ function AlfredTab({ lang }: { lang: Lang }) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100svh - 170px)', maxHeight: 'calc(100svh - 170px)' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        minHeight: 0,
+        boxSizing: 'border-box',
+        paddingBottom: 90,
+      }}
+    >
       <div style={{ padding: '16px 16px 8px' }}>
         <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 24, color: C.brownMid, marginBottom: 4 }}>Alfred</h2>
         <p style={{ color: C.textLight, fontSize: 13 }}>{uiTxt.subtitle}</p>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '8px 16px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {messages.length === 0 && (
           <div
             style={{
@@ -1656,6 +1665,7 @@ export default function GuestGuide() {
   const [langOpen, setLangOpen] = useState(false)
   const headerTxt = T.header[lang]
   const navTxt = T.nav[lang]
+  const isAlfredTab = tab === 'alfred'
 
   const renderTab = () => {
     switch (tab) {
@@ -1753,7 +1763,14 @@ export default function GuestGuide() {
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 90 }}>
+        <div
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: isAlfredTab ? 'hidden' : 'auto',
+            paddingBottom: isAlfredTab ? 0 : 90,
+          }}
+        >
           {renderTab()}
         </div>
 
