@@ -1616,17 +1616,18 @@ function AlfredTab({
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 6,
+            gap: 8,
             border: 'none',
             background: 'transparent',
             color: C.textLight,
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: 700,
             cursor: 'pointer',
-            padding: '2px 0 8px',
+            padding: '4px 0 10px',
+            marginBottom: 6,
           }}
         >
-          <span style={{ fontSize: 14, lineHeight: 1 }}>←</span>
+          <span style={{ fontSize: 17, lineHeight: 1 }}>←</span>
           <span>{backHomeLabel[lang]}</span>
         </button>
 
@@ -2013,6 +2014,7 @@ export default function GuestGuide() {
             flex: 1,
             minHeight: 0,
             overflowY: isAlfredTab ? 'hidden' : 'auto',
+            overscrollBehavior: 'none',
             paddingBottom: isAlfredTab ? 0 : 90,
           }}
         >

@@ -2,7 +2,13 @@
 @import "tailwindcss";
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { background: #F5F0E8; font-family: 'Lato', sans-serif; overscroll-behavior: none; }
+html, body {
+  background: #F5F0E8;
+  font-family: 'Lato', sans-serif;
+  overscroll-behavior: none;
+  height: 100%;
+  overflow: hidden;
+}
 ::-webkit-scrollbar { width: 0; }
 
 /* Nasconde il launcher/popup dev di Next.js (icona "N" in basso a sinistra) */
