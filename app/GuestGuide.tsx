@@ -1256,7 +1256,7 @@ const ALFRED_UI_TEXT: Record<Lang, {
   },
 }
 
-function AlfredTab({ lang }: { lang: Lang }) {
+function AlfredTab({ lang, keyboardOpen }: { lang: Lang; keyboardOpen: boolean }) {
   const uiTxt = ALFRED_UI_TEXT[lang]
   const { messages, sendMessage: sendChatMessage, status, error } = useChat({
     transport: new DefaultChatTransport({ api: '/api/alfred' }),
@@ -1475,7 +1475,8 @@ function AlfredTab({ lang }: { lang: Lang }) {
         height: '100%',
         minHeight: 0,
         boxSizing: 'border-box',
-        paddingBottom: 90,
+        paddingBottom: keyboardOpen ? 8 : 90,
+        transition: 'padding-bottom 0.2s ease',
       }}
     >
       <div style={{ padding: '16px 16px 8px' }}>
@@ -1524,6 +1525,7 @@ function AlfredTab({ lang }: { lang: Lang }) {
                 whiteSpace: 'pre-line',
                 fontSize: 14,
                 lineHeight: 1.45,
+                animation: 'alfredMessageIn 220ms ease-out',
               }}
             >
               {renderMessageContent(text, m.role)}
@@ -1575,9 +1577,14 @@ function AlfredTab({ lang }: { lang: Lang }) {
 
       <div style={{
         marginTop: 'auto',
-        padding: '10px 16px 12px',
+        position: 'sticky',
+        bottom: 0,
+        zIndex: 5,
+        padding: keyboardOpen ? '10px 16px 8px' : '10px 16px calc(12px + env(safe-area-inset-bottom, 0px))',
         background: 'linear-gradient(180deg, rgba(245,240,232,0.92) 0%, rgba(245,240,232,1) 35%)',
         borderTop: `1px solid ${C.creamDark}`,
+        backdropFilter: 'blur(4px)',
+        transition: 'padding 0.2s ease',
       }}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <textarea
@@ -1663,9 +1670,39 @@ export default function GuestGuide() {
   const [tab, setTab] = useState('home')
   const [lang, setLang] = useState<Lang>('it')
   const [langOpen, setLangOpen] = useState(false)
+  const [keyboardOpen, setKeyboardOpen] = useState(false)
   const headerTxt = T.header[lang]
   const navTxt = T.nav[lang]
   const isAlfredTab = tab === 'alfred'
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const viewport = window.visualViewport
+    if (!viewport) {
+      setKeyboardOpen(false)
+      return
+    }
+
+    const updateKeyboardState = () => {
+      if (tab !== 'alfred') {
+        setKeyboardOpen(false)
+        return
+      }
+
+      const keyboardHeight = window.innerHeight - viewport.height - viewport.offsetTop
+      setKeyboardOpen(keyboardHeight > 120)
+    }
+
+    updateKeyboardState()
+    viewport.addEventListener('resize', updateKeyboardState)
+    viewport.addEventListener('scroll', updateKeyboardState)
+
+    return () => {
+      viewport.removeEventListener('resize', updateKeyboardState)
+      viewport.removeEventListener('scroll', updateKeyboardState)
+    }
+  }, [tab])
 
   const renderTab = () => {
     switch (tab) {
@@ -1674,14 +1711,14 @@ export default function GuestGuide() {
       case 'esperienze': return <EsperienzeTab lang={lang} />
       case 'negozi': return <NegoziTab lang={lang} />
       case 'muoversi': return <MuoversiTab lang={lang} />
-      case 'alfred': return <AlfredTab lang={lang} />
+      case 'alfred': return <AlfredTab lang={lang} keyboardOpen={keyboardOpen} />
       default: return null
     }
   }
 
   return (
     <div style={{
-      minHeight: '100vh',
+      minHeight: '100dvh',
       display: 'flex',
       justifyContent: 'center',
       background: '#D4C4A8',
@@ -1690,7 +1727,7 @@ export default function GuestGuide() {
       <div style={{
         width: '100%',
         maxWidth: 430,
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background: '#F5F0E8',
         display: 'flex',
         flexDirection: 'column',
@@ -1784,9 +1821,9 @@ export default function GuestGuide() {
           maxWidth: 430,
           background: C.creamWhite,
           borderTop: `1px solid ${C.creamDark}`,
-          display: 'flex',
+          display: keyboardOpen ? 'none' : 'flex',
           justifyContent: 'space-between',
-          padding: '8px 0 16px',
+          padding: '8px 0 calc(16px + env(safe-area-inset-bottom, 0px))',
           boxShadow: '0 -4px 20px rgba(30,17,10,0.12)',
           zIndex: 100,
         }}>

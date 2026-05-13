@@ -23,6 +23,17 @@ nextjs-portal {
   40% { transform: scale(1.2); opacity: 1; }
 }
 
+@keyframes alfredMessageIn {
+	0% {
+		opacity: 0;
+		transform: translateY(6px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
 @media (max-width: 640px) {
 	.mobile-hide {
 		display: none !important;
