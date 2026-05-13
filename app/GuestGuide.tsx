@@ -1326,7 +1326,7 @@ function AlfredTab({
   const [selectedLoadingMessage, setSelectedLoadingMessage] = useState('')
   const loading = status === 'submitted' || status === 'streaming'
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const loadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const loadingTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (hasSeenWelcome) {
