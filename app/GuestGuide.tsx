@@ -1583,6 +1583,14 @@ function AlfredTab({
     return allNodes.length > 0 ? allNodes : renderInlineBold(normalizedText, 'fallback')
   }
 
+  const normalizeStreamingAssistantText = (rawText: string) => {
+    return rawText
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '$1')
+      .replace(/\[([^\]]*)\]\(([^)]*)$/g, '$1')
+      .replace(/\[([^\]]*)$/g, '$1')
+      .replace(/\*\*/g, '')
+  }
+
   const lastMessage = messages[messages.length - 1]
   const lastAssistantText =
     lastMessage?.role === 'assistant'
@@ -1676,6 +1684,12 @@ function AlfredTab({
           const text = getMessageText((m.parts ?? []) as Array<{ type: string; text?: string }>).trim()
           if (!text) return null
 
+          const isStreamingAssistantMessage =
+            status === 'streaming' && m.role === 'assistant' && m.id === lastMessage?.id
+          const renderedText = isStreamingAssistantMessage
+            ? normalizeStreamingAssistantText(text)
+            : text
+
           return (
             <div
               key={m.id}
@@ -1693,7 +1707,9 @@ function AlfredTab({
                 lineHeight: 1.45,
               }}
             >
-              {renderMessageContent(text, m.role)}
+              {isStreamingAssistantMessage
+                ? renderedText
+                : renderMessageContent(renderedText, m.role)}
             </div>
           )
         })}
