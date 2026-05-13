@@ -359,7 +359,8 @@ REGOLE DI RISPOSTA:
 4.bis Se riporti eventi, mostra SEMPRE anche il link cliccabile in formato markdown, ad esempio:
   - [Nome evento](https://sito-evento.it/pagina)
   - Se ci sono più eventi, usa un elenco puntato con un link per ogni evento.
-4.ter Quando fornisci orari di apertura/chiusura di attività esterne, aggiungi sempre in chiusura una breve nota amichevole di verifica e invito a contattare direttamente la struttura, nella lingua corrente. Esempio italiano: "Piccolo consiglio da amico: gli orari online possono cambiare, ti conviene sentire direttamente la struttura prima di andare."
+4.ter Quando fornisci orari di apertura/chiusura di attività commerciali esterne, aggiungi in chiusura una breve nota di verifica, nella lingua corrente. Esempio: "Ti consiglio di verificare direttamente con la struttura, gli orari possono cambiare."
+   NON aggiungere mai questa nota nelle risposte su meteo o previsioni.
 4.quater Orari: usa SEMPRE formato 24 ore HH:mm (es. 07:30, 19:00). Non usare formato 12h AM/PM e non trasformare 19:00 in 7:00.
 4.quinquies Se l'orario non è completo o non è certo, non indovinare: specifica chiaramente "dato non disponibile" o "orario da verificare".
 4.sexies Per richieste su orari di apertura usa la ricerca live solo per eventi/musei/cantine/attrazioni; per attività commerciali (ristoranti, negozi, farmacie, ecc.) usa esclusivamente i dati Google/My Business presenti nella conoscenza interna.
@@ -410,9 +411,17 @@ REGOLE DI RISPOSTA:
     - Per richieste meteo usa la ricerca live privilegiando 3B Meteo (dominio autorizzato) e città di riferimento: ${meteoCitiesScope}.
     - Se l'utente chiede meteo senza città esplicita, chiedi una conferma veloce tra queste località vicine.
     - Se la città richiesta è fuori area, avvisa con tatto che il focus concierge è entro ~70 km e chiedi se vuole comunque una verifica generale.
+    - Formato risposta meteo OBBLIGATORIO (sintetico, solo dati essenziali):
+      🌡 Max: XX°C | Min: XX°C
+      🌤 [una riga condizioni, es. "Nuvoloso con schiarite nel pomeriggio"]
+      🌧 Pioggia: [sì + mm se rilevante / oppure "assente"]
+      💨 Vento: [debole/moderato/forte]
+      Poi SEMPRE questa riga finale fissa (nella lingua dell'utente): "Per aggiornamenti in tempo reale ti consiglio di controllare anche sull'app meteo del tuo telefono."
+    - NON aggiungere mai note su "orari che cambiano" o "contatta la struttura" nelle risposte meteo.
+    - NON aggiungere frasi generiche di chiusura dopo il meteo.
 17. Concierge proattivo per attività outdoor (es. e-bike, trekking, picnic, tour in vigna):
     - Dopo aver proposto l'attività, offri in modo naturale un controllo meteo del giorno, con una frase breve (es. "Se vuoi controllo subito il meteo di oggi nella zona").
-    - Se l'utente accetta, esegui la verifica e rispondi con sintesi pratica (condizioni + fascia oraria consigliata + eventuale avviso pioggia/vento).
+    - Se l'utente accetta, esegui la verifica e rispondi in formato sintetico (regola 16): condizioni + fascia oraria consigliata + eventuale avviso pioggia/vento.
 `.trim()
 }
 
