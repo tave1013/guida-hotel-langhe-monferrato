@@ -1305,9 +1305,6 @@ function AlfredTab({ lang }: { lang: Lang }) {
 
   const renderMessageContent = (rawText: string, role: 'assistant' | 'user') => {
     const normalizedText = rawText.replace(/\*([^*\n][^*\n]{0,120})\*\*/g, '**$1**')
-    const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g
-    const autoLinkRegex = /([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}|\+?\d[\d\s().-]{6,}\d)/gi
-    const nodes: React.ReactNode[] = []
 
     const regularLinkStyle = {
       color: role === 'user' ? '#F2EBDD' : C.brownMid,
@@ -1315,7 +1312,7 @@ function AlfredTab({ lang }: { lang: Lang }) {
       fontWeight: 600,
     }
 
-    const renderInlineBold = (text: string, keyPrefix: string) => {
+    const renderInlineBold = (text: string, keyPrefix: string): React.ReactNode[] => {
       const boldRegex = /\*\*([^*]+)\*\*/g
       const inlineNodes: React.ReactNode[] = []
       let inlineLastIndex = 0
@@ -1345,7 +1342,8 @@ function AlfredTab({ lang }: { lang: Lang }) {
       return inlineNodes.length > 0 ? inlineNodes : [text.replace(/\*/g, '')]
     }
 
-    const pushAutoLinkedText = (textChunk: string, keyPrefix: string) => {
+    const pushAutoLinked = (textChunk: string, keyPrefix: string, targetNodes: React.ReactNode[]) => {
+      const autoLinkRegex = /([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}|\+?\d[\d\s().-]{6,}\d)/gi
       let subLastIndex = 0
       let autoMatch: RegExpExecArray | null
 
@@ -1354,37 +1352,28 @@ function AlfredTab({ lang }: { lang: Lang }) {
         const autoIndex = autoMatch.index
 
         if (autoIndex > subLastIndex) {
-          nodes.push(...renderInlineBold(textChunk.slice(subLastIndex, autoIndex), `${keyPrefix}-inline-${autoIndex}`))
+          targetNodes.push(...renderInlineBold(textChunk.slice(subLastIndex, autoIndex), `${keyPrefix}-inline-${autoIndex}`))
         }
 
         const isEmail = fullMatch.includes('@')
 
         if (isEmail) {
-          nodes.push(
-            <a
-              key={`${keyPrefix}-email-${autoIndex}`}
-              href={`mailto:${fullMatch}`}
-              style={regularLinkStyle}
-            >
+          targetNodes.push(
+            <a key={`${keyPrefix}-email-${autoIndex}`} href={`mailto:${fullMatch}`} style={regularLinkStyle}>
               {fullMatch}
             </a>,
           )
         } else {
           const normalizedPhone = fullMatch.replace(/[^\d+]/g, '')
           const digitCount = normalizedPhone.replace(/\D/g, '').length
-
           if (digitCount >= 7) {
-            nodes.push(
-              <a
-                key={`${keyPrefix}-phone-${autoIndex}`}
-                href={`tel:${normalizedPhone}`}
-                style={regularLinkStyle}
-              >
+            targetNodes.push(
+              <a key={`${keyPrefix}-phone-${autoIndex}`} href={`tel:${normalizedPhone}`} style={regularLinkStyle}>
                 {fullMatch}
               </a>,
             )
           } else {
-            nodes.push(fullMatch)
+            targetNodes.push(fullMatch)
           }
         }
 
@@ -1392,60 +1381,90 @@ function AlfredTab({ lang }: { lang: Lang }) {
       }
 
       if (subLastIndex < textChunk.length) {
-        nodes.push(...renderInlineBold(textChunk.slice(subLastIndex), `${keyPrefix}-inline-end`))
+        targetNodes.push(...renderInlineBold(textChunk.slice(subLastIndex), `${keyPrefix}-inline-end`))
+      }
+    }
+
+    const processLine = (lineText: string, lineKeyPrefix: string, targetNodes: React.ReactNode[]) => {
+      const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g
+      let lastIndex = 0
+      let match: RegExpExecArray | null
+
+      while ((match = linkRegex.exec(lineText)) !== null) {
+        const [fullMatch, label, url] = match
+        const matchIndex = match.index
+
+        if (matchIndex > lastIndex) {
+          pushAutoLinked(lineText.slice(lastIndex, matchIndex), `${lineKeyPrefix}-pre-${matchIndex}`, targetNodes)
+        }
+
+        const isWhatsapp = /^https?:\/\/wa\.me\/\d+/.test(url)
+        const isAssistantWhatsapp = role === 'assistant' && isWhatsapp
+
+        targetNodes.push(
+          <a
+            key={`${lineKeyPrefix}-link-${matchIndex}`}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={isAssistantWhatsapp
+              ? {
+                  display: 'inline-block',
+                  marginTop: 8,
+                  padding: '6px 10px',
+                  borderRadius: 8,
+                  background: '#25D366',
+                  color: '#ffffff',
+                  textDecoration: 'none',
+                  fontWeight: 700,
+                  fontSize: 12,
+                }
+              : regularLinkStyle}
+          >
+            {label}
+          </a>,
+        )
+
+        lastIndex = matchIndex + fullMatch.length
       }
 
-      autoLinkRegex.lastIndex = 0
-    }
-
-    let lastIndex = 0
-    let match: RegExpExecArray | null
-
-    while ((match = linkRegex.exec(normalizedText)) !== null) {
-      const [fullMatch, label, url] = match
-      const matchIndex = match.index
-
-      if (matchIndex > lastIndex) {
-        pushAutoLinkedText(normalizedText.slice(lastIndex, matchIndex), `chunk-${matchIndex}`)
+      if (lastIndex < lineText.length) {
+        pushAutoLinked(lineText.slice(lastIndex), `${lineKeyPrefix}-final`, targetNodes)
       }
-
-      const isWhatsapp = /^https?:\/\/wa\.me\/\d+/.test(url)
-      const isAssistantWhatsapp = role === 'assistant' && isWhatsapp
-
-      nodes.push(
-        <a
-          key={`${url}-${matchIndex}`}
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={isAssistantWhatsapp
-            ? {
-                display: 'inline-block',
-                marginTop: 8,
-                padding: '6px 10px',
-                borderRadius: 8,
-                background: '#25D366',
-                color: '#ffffff',
-                textDecoration: 'none',
-                fontWeight: 700,
-                fontSize: 12,
-              }
-            : {
-                ...regularLinkStyle,
-              }}
-        >
-          {label}
-        </a>,
-      )
-
-      lastIndex = matchIndex + fullMatch.length
     }
 
-    if (lastIndex < normalizedText.length) {
-      pushAutoLinkedText(normalizedText.slice(lastIndex), 'chunk-final')
-    }
+    const allNodes: React.ReactNode[] = []
+    const lines = normalizedText.split('\n')
 
-    return nodes.length > 0 ? nodes : renderInlineBold(normalizedText, 'chunk-plain')
+    lines.forEach((line, lineIdx) => {
+      const headingMatch = line.match(/^(#{1,3})\s+(.+)/)
+
+      if (headingMatch) {
+        const level = headingMatch[1].length
+        const headingText = headingMatch[2]
+        allNodes.push(
+          <strong
+            key={`heading-${lineIdx}`}
+            style={{
+              display: 'block',
+              fontWeight: 700,
+              fontSize: level === 1 ? 16 : level === 2 ? 15 : 14,
+              marginTop: lineIdx > 0 ? 10 : 0,
+              marginBottom: 2,
+            }}
+          >
+            {headingText}
+          </strong>,
+        )
+      } else {
+        processLine(line, `line-${lineIdx}`, allNodes)
+        if (lineIdx < lines.length - 1) {
+          allNodes.push('\n')
+        }
+      }
+    })
+
+    return allNodes.length > 0 ? allNodes : renderInlineBold(normalizedText, 'fallback')
   }
 
   return (
