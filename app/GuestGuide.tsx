@@ -1673,11 +1673,11 @@ function AlfredTab({
 
       <div style={{
         marginTop: 'auto',
-        padding: '10px 16px calc(12px + env(safe-area-inset-bottom, 0px))',
+        padding: '8px 16px 10px',
         background: 'linear-gradient(180deg, rgba(245,240,232,0.92) 0%, rgba(245,240,232,1) 35%)',
         borderTop: `1px solid ${C.creamDark}`,
       }}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', background: C.creamWhite, border: `1px solid ${C.creamDark}`, borderRadius: 18, padding: 8, boxShadow: '0 2px 8px rgba(30,17,10,0.05)' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', background: C.creamWhite, border: `1px solid ${C.creamDark}`, borderRadius: 16, padding: 6, boxShadow: '0 2px 8px rgba(30,17,10,0.05)' }}>
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -1698,7 +1698,7 @@ function AlfredTab({
               flex: 1,
               borderRadius: 14,
               border: 'none',
-              padding: '10px 6px 10px 8px',
+              padding: '8px 6px 8px 8px',
               fontSize: 16,
               outline: 'none',
               color: C.textMid,
@@ -1719,9 +1719,9 @@ function AlfredTab({
               border: 'none',
               background: loading ? C.textLight : C.brownMid,
               color: '#F2EBDD',
-              borderRadius: 14,
-              padding: '0 16px',
-              minHeight: 44,
+              borderRadius: 13,
+              padding: '0 14px',
+              minHeight: 40,
               fontSize: 13,
               fontWeight: 700,
               cursor: loading ? 'default' : 'pointer',
