@@ -204,6 +204,9 @@ const C = {
   textLight: '#7A5B4B',
 }
 
+const ALFRED_AVATAR_PRIMARY = '/alfred.webp'
+const ALFRED_AVATAR_FALLBACK = '/Alfred.webp'
+
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
 const ITINERARI = [
@@ -1559,8 +1562,14 @@ function AlfredTab({
             }}
           >
             <img
-              src="/Alfred.webp"
+              src={ALFRED_AVATAR_PRIMARY}
               alt="Alfred"
+              onError={(e) => {
+                const img = e.currentTarget
+                if (img.src.includes(ALFRED_AVATAR_PRIMARY)) {
+                  img.src = ALFRED_AVATAR_FALLBACK
+                }
+              }}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           </div>
@@ -1786,20 +1795,24 @@ export default function GuestGuide() {
 
   return (
     <div style={{
-      minHeight: '100vh',
+      minHeight: '100dvh',
+      height: '100dvh',
       display: 'flex',
       justifyContent: 'center',
       background: '#D4C4A8',
+      overflow: 'hidden',
     }}>
       {/* Phone shell */}
       <div style={{
         width: '100%',
         maxWidth: 430,
-        minHeight: '100vh',
+        minHeight: '100dvh',
+        height: '100dvh',
         background: '#F5F0E8',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
+        overflow: 'hidden',
       }}>
         {/* Header */}
         {!isAlfredTab && (
@@ -1916,8 +1929,14 @@ export default function GuestGuide() {
                   }}
                 >
                   <img
-                    src="/Alfred.webp"
+                    src={ALFRED_AVATAR_PRIMARY}
                     alt="Alfred"
+                    onError={(e) => {
+                      const img = e.currentTarget
+                      if (img.src.includes(ALFRED_AVATAR_PRIMARY)) {
+                        img.src = ALFRED_AVATAR_FALLBACK
+                      }
+                    }}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 </div>
