@@ -124,8 +124,6 @@ const eventSourceDomains = parseDomains(EVENT_SOURCE_URLS.join(','))
 const municipalAndEventDomains = [...new Set([...municipalDomains, ...eventSourceDomains])]
 const allAllowedDomains = [...new Set([...hotelDomains, ...municipalAndEventDomains])]
 
-const tavilyClient = tavily({ apiKey: TAVILY_API_KEY })
-
 function detectLanguageFromText(text: string): ConversationLang {
   const t = text.toLowerCase()
 
@@ -281,6 +279,8 @@ export async function POST(req: Request) {
               results: [],
             }
           }
+
+          const tavilyClient = tavily({ apiKey: TAVILY_API_KEY })
 
           if (allAllowedDomains.length === 0) {
             return {
