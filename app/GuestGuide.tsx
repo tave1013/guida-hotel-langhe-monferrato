@@ -1221,7 +1221,7 @@ const ALFRED_UI_TEXT: Record<Lang, {
 }> = {
   it: {
     subtitle: "Chat concierge dell'hotel",
-    welcome: 'Ciao! Sono Alfred 👋\nCome posso aiutarti durante il tuo soggiorno?',
+    welcome: 'Ciao! Sono Alfred, il tuo concierge personale! 👋\nCome posso aiutarti?',
     placeholder: 'Scrivi un messaggio...',
     send: 'Invia',
     tempError: 'Al momento sto riordinando i registri, riprova tra un istante.',
@@ -1256,14 +1256,61 @@ const ALFRED_UI_TEXT: Record<Lang, {
   },
 }
 
-function AlfredTab({ lang }: { lang: Lang }) {
+function AlfredTab({
+  lang,
+  hasSeenWelcome,
+  onWelcomeShown,
+  onBackHome,
+}: {
+  lang: Lang
+  hasSeenWelcome: boolean
+  onWelcomeShown: () => void
+  onBackHome: () => void
+}) {
   const uiTxt = ALFRED_UI_TEXT[lang]
+  const personalConciergeLabel: Record<Lang, string> = {
+    it: 'Il tuo concierge personale',
+    en: 'Your personal concierge',
+    fr: 'Votre concierge personnel',
+    de: 'Ihr persönlicher Concierge',
+    es: 'Tu conserje personal',
+  }
+  const backHomeLabel: Record<Lang, string> = {
+    it: 'Torna alla Home',
+    en: 'Back to Home',
+    fr: "Retour à l'accueil",
+    de: 'Zurück zur Startseite',
+    es: 'Volver a Inicio',
+  }
   const { messages, sendMessage: sendChatMessage, status, error } = useChat({
     transport: new DefaultChatTransport({ api: '/api/alfred' }),
   })
   const [input, setInput] = useState('')
+  const [showWelcome, setShowWelcome] = useState(hasSeenWelcome)
+  const [animateWelcome, setAnimateWelcome] = useState(false)
   const loading = status === 'submitted' || status === 'streaming'
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (hasSeenWelcome) {
+      setShowWelcome(true)
+      setAnimateWelcome(false)
+      return
+    }
+
+    setShowWelcome(false)
+    setAnimateWelcome(false)
+
+    const timer = window.setTimeout(() => {
+      setShowWelcome(true)
+      setAnimateWelcome(true)
+      onWelcomeShown()
+    }, 1000)
+
+    return () => {
+      window.clearTimeout(timer)
+    }
+  }, [hasSeenWelcome, onWelcomeShown])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -1475,10 +1522,29 @@ function AlfredTab({ lang }: { lang: Lang }) {
         height: '100%',
         minHeight: 0,
         boxSizing: 'border-box',
-        paddingBottom: 90,
+        paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
       }}
     >
       <div style={{ padding: '16px 16px 8px' }}>
+        <button
+          onClick={onBackHome}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            border: 'none',
+            background: 'transparent',
+            color: C.textLight,
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: 'pointer',
+            padding: '2px 0 8px',
+          }}
+        >
+          <span style={{ fontSize: 14, lineHeight: 1 }}>←</span>
+          <span>{backHomeLabel[lang]}</span>
+        </button>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
           <div
             style={{
@@ -1498,13 +1564,15 @@ function AlfredTab({ lang }: { lang: Lang }) {
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           </div>
-          <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 24, color: C.brownMid }}>Alfred</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 24, color: C.brownMid }}>Alfred</h2>
+            <span style={{ color: C.textLight, fontSize: 13 }}>- {personalConciergeLabel[lang]}</span>
+          </div>
         </div>
-        <p style={{ color: C.textLight, fontSize: 13 }}>{uiTxt.subtitle}</p>
       </div>
 
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '8px 16px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {messages.length === 0 && (
+        {messages.length === 0 && showWelcome && (
           <div
             style={{
               alignSelf: 'flex-start',
@@ -1518,6 +1586,7 @@ function AlfredTab({ lang }: { lang: Lang }) {
               whiteSpace: 'pre-line',
               fontSize: 14,
               lineHeight: 1.45,
+              animation: animateWelcome ? 'alfredWelcomeIn 420ms cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
             }}
           >
             {uiTxt.welcome}
@@ -1683,9 +1752,25 @@ export default function GuestGuide() {
   const [tab, setTab] = useState('home')
   const [lang, setLang] = useState<Lang>('it')
   const [langOpen, setLangOpen] = useState(false)
+  const [hasSeenAlfredWelcome, setHasSeenAlfredWelcome] = useState(false)
   const headerTxt = T.header[lang]
   const navTxt = T.nav[lang]
   const isAlfredTab = tab === 'alfred'
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const seen = window.sessionStorage.getItem('alfred-welcome-seen') === '1'
+    if (seen) {
+      setHasSeenAlfredWelcome(true)
+    }
+  }, [])
+
+  const markAlfredWelcomeSeen = React.useCallback(() => {
+    setHasSeenAlfredWelcome(true)
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem('alfred-welcome-seen', '1')
+    }
+  }, [])
 
   const renderTab = () => {
     switch (tab) {
@@ -1694,7 +1779,7 @@ export default function GuestGuide() {
       case 'esperienze': return <EsperienzeTab lang={lang} />
       case 'negozi': return <NegoziTab lang={lang} />
       case 'muoversi': return <MuoversiTab lang={lang} />
-      case 'alfred': return <AlfredTab lang={lang} />
+      case 'alfred': return <AlfredTab lang={lang} hasSeenWelcome={hasSeenAlfredWelcome} onWelcomeShown={markAlfredWelcomeSeen} onBackHome={() => setTab('home')} />
       default: return null
     }
   }
@@ -1717,70 +1802,72 @@ export default function GuestGuide() {
         position: 'relative',
       }}>
         {/* Header */}
-        <div className="mobile-compact-header" style={{
-          background: '#171312',
-          padding: '16px 16px 12px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
-          <div>
-            <div className="mobile-hide" style={{ fontFamily: 'Playfair Display, serif', color: C.gold, fontSize: 11, letterSpacing: '0.12em', marginBottom: 2 }}>
-              {headerTxt.location}
-            </div>
-            <div style={{ fontFamily: 'Playfair Display, serif', color: '#fff', fontSize: 17, fontWeight: 600 }}>
-              {headerTxt.hotelName}
-            </div>
-          </div>
-          <div style={{ position: 'relative' }}>
-            <button
-              onClick={() => setLangOpen(o => !o)}
-              style={{
-                width: 44, height: 44, borderRadius: 12,
-                border: 'none',
-                background: langOpen ? '#FFFFFF18' : 'transparent',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
-                cursor: 'pointer', padding: 0,
-              }}
-            >
-              <span style={{ fontSize: 22, lineHeight: 1 }}>{LANGS.find(l => l.code === lang)?.flag}</span>
-              <span style={{ color: '#FFFFFF88', fontSize: 10, lineHeight: 1 }}>▾</span>
-            </button>
-            {langOpen && (
-              <div style={{
-                position: 'absolute', top: 50, right: 0,
-                background: '#1E1512',
-                border: `1px solid ${C.brownMid}`,
-                borderRadius: 14,
-                overflow: 'hidden',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                zIndex: 100,
-                minWidth: 150,
-              }}>
-                {LANGS.map((l, i) => (
-                  <button
-                    key={l.code}
-                    onClick={() => { setLang(l.code); setLangOpen(false) }}
-                    style={{
-                      width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-                      padding: '11px 16px',
-                      background: lang === l.code ? `${C.brownMid}55` : 'transparent',
-                      borderBottom: i < LANGS.length - 1 ? '1px solid #FFFFFF11' : 'none',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <span style={{ fontSize: 20 }}>{l.flag}</span>
-                    <span style={{
-                      fontFamily: 'Lato, sans-serif', fontSize: 13, fontWeight: lang === l.code ? 700 : 400,
-                      color: lang === l.code ? C.gold : '#FFFFFFCC',
-                    }}>{l.label}</span>
-                    {lang === l.code && <span style={{ marginLeft: 'auto', color: C.gold, fontSize: 12 }}>✓</span>}
-                  </button>
-                ))}
+        {!isAlfredTab && (
+          <div className="mobile-compact-header" style={{
+            background: '#171312',
+            padding: '16px 16px 12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}>
+            <div>
+              <div className="mobile-hide" style={{ fontFamily: 'Playfair Display, serif', color: C.gold, fontSize: 11, letterSpacing: '0.12em', marginBottom: 2 }}>
+                {headerTxt.location}
               </div>
-            )}
+              <div style={{ fontFamily: 'Playfair Display, serif', color: '#fff', fontSize: 17, fontWeight: 600 }}>
+                {headerTxt.hotelName}
+              </div>
+            </div>
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setLangOpen(o => !o)}
+                style={{
+                  width: 44, height: 44, borderRadius: 12,
+                  border: 'none',
+                  background: langOpen ? '#FFFFFF18' : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+                  cursor: 'pointer', padding: 0,
+                }}
+              >
+                <span style={{ fontSize: 22, lineHeight: 1 }}>{LANGS.find(l => l.code === lang)?.flag}</span>
+                <span style={{ color: '#FFFFFF88', fontSize: 10, lineHeight: 1 }}>▾</span>
+              </button>
+              {langOpen && (
+                <div style={{
+                  position: 'absolute', top: 50, right: 0,
+                  background: '#1E1512',
+                  border: `1px solid ${C.brownMid}`,
+                  borderRadius: 14,
+                  overflow: 'hidden',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                  zIndex: 100,
+                  minWidth: 150,
+                }}>
+                  {LANGS.map((l, i) => (
+                    <button
+                      key={l.code}
+                      onClick={() => { setLang(l.code); setLangOpen(false) }}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                        padding: '11px 16px',
+                        background: lang === l.code ? `${C.brownMid}55` : 'transparent',
+                        borderBottom: i < LANGS.length - 1 ? '1px solid #FFFFFF11' : 'none',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <span style={{ fontSize: 20 }}>{l.flag}</span>
+                      <span style={{
+                        fontFamily: 'Lato, sans-serif', fontSize: 13, fontWeight: lang === l.code ? 700 : 400,
+                        color: lang === l.code ? C.gold : '#FFFFFFCC',
+                      }}>{l.label}</span>
+                      {lang === l.code && <span style={{ marginLeft: 'auto', color: C.gold, fontSize: 12 }}>✓</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Content */}
         <div
@@ -1804,7 +1891,7 @@ export default function GuestGuide() {
           maxWidth: 430,
           background: C.creamWhite,
           borderTop: `1px solid ${C.creamDark}`,
-          display: 'flex',
+          display: isAlfredTab ? 'none' : 'flex',
           justifyContent: 'space-between',
           padding: '8px 0 16px',
           boxShadow: '0 -4px 20px rgba(30,17,10,0.12)',
@@ -1816,9 +1903,29 @@ export default function GuestGuide() {
               flex: 1, minWidth: 0,
               gap: 3, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 2px',
             }}>
-              <div style={{ transform: 'scale(0.9)', transformOrigin: 'center' }}>
-                <Icon active={tab === id} />
-              </div>
+              {id === 'alfred' ? (
+                <div
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: '50%',
+                    background: '#FFFFFF',
+                    border: `1px solid ${tab === id ? C.gold : C.creamDark}`,
+                    boxShadow: tab === id ? '0 0 0 1px rgba(178,150,100,0.35)' : 'none',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <img
+                    src="/Alfred.webp"
+                    alt="Alfred"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                </div>
+              ) : (
+                <div style={{ transform: 'scale(0.9)', transformOrigin: 'center' }}>
+                  <Icon active={tab === id} />
+                </div>
+              )}
               <span style={{
                 fontSize: 9, fontWeight: 700, letterSpacing: '0.02em', whiteSpace: 'nowrap',
                 color: tab === id ? C.gold : C.textLight,

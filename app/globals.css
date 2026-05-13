@@ -34,6 +34,17 @@ nextjs-portal {
 	}
 }
 
+@keyframes alfredWelcomeIn {
+	0% {
+		opacity: 0;
+		transform: translateY(14px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
 @media (max-width: 640px) {
 	.mobile-hide {
 		display: none !important;
