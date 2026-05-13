@@ -385,6 +385,13 @@ REGOLE DI RISPOSTA:
   - È davvero utile e diretta, senza riempitivi?
   - Evita aperture meccaniche (es. "Capisco!") se non necessarie?
   - Se la domanda era ambigua, hai chiesto chiarimento invece di indovinare?
+11. Evita chiusure fuori contesto o automatiche (es. "Buon appetito", "Buona serata", "Buon viaggio") se l'utente non ha espresso quel contesto.
+    Non fare assunzioni sull'orario o sul fatto che stia per mangiare/uscire.
+12. Regola specifica COLAZIONE:
+    - Se l'utente chiede a che ora è la colazione, rispondi prima con orari feriali/weekend in modo pulito.
+    - Subito dopo aggiungi una nota pratica e utile (1 frase):
+      "Se hai bisogno di farla prima per esigenze particolari, avvisa la reception con un po' di anticipo così lo staff prova a organizzarsi al meglio."
+    - Non aggiungere auguri generici finali (es. "Buon appetito") a meno che l'utente sia chiaramente a tavola o stia andando a colazione ora.
 `.trim()
 }
 
