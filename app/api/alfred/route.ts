@@ -127,6 +127,12 @@ const allAllowedDomains = [...new Set([...hotelDomains, ...municipalAndEventDoma
 function detectLanguageFromText(text: string): ConversationLang {
   const t = text.toLowerCase()
 
+  // Strong one-shot hints (high precision)
+  if (/[¿¡ñ]/.test(t) || /\b(gracias|por favor|dónde|donde|cómo|como|cuándo|cuando|puedo|podría|quisiera)\b/.test(t)) return 'es'
+  if (/[äöüß]/.test(t) || /\b(guten tag|guten morgen|wie viel|können sie|ich möchte|wo ist|wann ist)\b/.test(t)) return 'de'
+  if (/[àâçéèêëîïôùûüÿœ]/.test(t) || /\b(s'il vous plaît|je voudrais|pouvez-vous|où est|quand est|combien)\b/.test(t)) return 'fr'
+  if (/\b(please|thank you|can you|could you|would you|where is|what time|how much|i need|i want)\b/.test(t)) return 'en'
+
   const scores: Record<ConversationLang, number> = { it: 0, en: 0, fr: 0, de: 0, es: 0 }
 
   const deWords = /\b(wie|und|danke|guten|zur|ich|bitte|ist|sind|haben|können|was|wann|wo|gibt|noch|auch|aber|oder|nicht|ein|eine|für|mit|von|auf|das|die|der|des|beim|hotel|zimmer|frühstück|parkplatz|hilfe|brauche|möchte|welche|welcher|welches|würde)\b/gi
@@ -149,11 +155,22 @@ function detectLanguageFromText(text: string): ConversationLang {
   const itMatches = t.match(itWords)
   scores.it = itMatches ? itMatches.length : 0
 
-  const best = (Object.entries(scores) as [ConversationLang, number][])
-    .sort((a, b) => b[1] - a[1])[0]
+  const entries = Object.entries(scores) as [ConversationLang, number][]
+  const maxScore = Math.max(...entries.map(([, score]) => score))
 
-  if (best[1] === 0) return 'it'
-  return best[0]
+  if (maxScore === 0) return 'it'
+
+  const winners = entries
+    .filter(([, score]) => score === maxScore)
+    .map(([lang]) => lang)
+
+  if (winners.length === 1) return winners[0]
+
+  // In ties, avoid defaulting to Italian when another language is equally likely.
+  const nonItalianWinner = winners.find((lang) => lang !== 'it')
+  if (nonItalianWinner) return nonItalianWinner
+
+  return winners[0]
 }
 
 function extractLastUserText(messages: UIMessage[]): string {
@@ -219,6 +236,14 @@ function buildSystemPrompt(conversationLang: ConversationLang) {
       ? allAllowedDomains.join(', ')
       : 'sito hotel e siti istituzionali/turistici della zona'
 
+  const languageLabel: Record<ConversationLang, string> = {
+    it: 'Italiano',
+    en: 'English',
+    fr: 'Français',
+    de: 'Deutsch',
+    es: 'Español',
+  }
+
   const knowledgeBase = buildKnowledgeText()
   const completeKnowledgeBase = loadCompleteKnowledgeText()
   const completeKnowledgeBlock = completeKnowledgeBase
@@ -228,6 +253,9 @@ function buildSystemPrompt(conversationLang: ConversationLang) {
   return `
 Sei Alfred, il concierge virtuale dell'Hotel Langhe & Monferrato.
 Parla come un padrone di casa moderno: cordiale, professionale, terra-terra.
+LINGUA OBBLIGATORIA ORA: ${languageLabel[conversationLang]} (${conversationLang}).
+Devi rispondere SOLO in ${languageLabel[conversationLang]} per questa risposta.
+Non usare italiano se la lingua corrente non è it.
 Regola lingua (fondamentale): rispondi SEMPRE nella stessa lingua dell'ultimo messaggio utente (language mirroring), anche se l'interfaccia è in un'altra lingua.
 Se l'utente cambia lingua durante la conversazione, adeguati subito.
 
