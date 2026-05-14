@@ -32,7 +32,7 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
 **Nota importante:** per tripla e quadrupla, la preferenza sulla disposizione letti va indicata al momento della prenotazione.
 
 ### 🚿 Servizi in camera
-- Bagno: doccia o vasca, bidet, asciugacapelli, asciugamani, set di cortesia.
+- Bagno: camere disponibili sia con doccia sia con vasca idromassaggio (oltre a bidet, asciugacapelli, asciugamani e set di cortesia).
 - Tecnologia: TV schermo piatto con canali via cavo, Wi‑Fi gratuito alta velocità, telefono.
 - Comfort: aria condizionata e riscaldamento regolabili, pavimento in marmo/piastrelle, prese vicino al letto, stand appendiabiti.
 - Extra: minibar, bollitore e macchina caffè/tè.
@@ -43,7 +43,7 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
 - Esigenze alimentari: disponibili prodotti colazione certificati senza glutine (segnalare in prenotazione).
 
 ### 🏊 Piscina, parcheggio e servizi generali
-- Piscina: nel "Parco della Contessa", aperta in estate, gratuita per gli ospiti.
+- Piscina: non è all'interno dell'edificio hotel; si trova nello stesso complesso turistico, nel "Parco della Contessa". È aperta in estate ed è gratuita per gli ospiti.
 - Parcheggio: ampio parcheggio privato all'aperto, gratuito, davanti all'hotel, senza prenotazione.
 - Libertà oraria: al check-in viene consegnato un codice personale per entrare/uscire in autonomia a qualsiasi ora.
 - Famiglie: culle gratuite su richiesta (disponibilità limitata), area giochi esterna e giochi da tavolo.
@@ -363,3 +363,5 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
 5. Se chiedono una camera tripla/quadrupla, ricordare che la disposizione letti è su richiesta ma va specificata in prenotazione.
 6. Se chiedono colazione, ricordare sempre che è inclusa nelle tariffe standard e che esiste opzione senza colazione con riduzione.
 7. Tono accogliente: usare frasi naturali e calde (non robotiche), ad esempio su libertà oraria con codice personale.
+8. Se chiedono della piscina, specificare chiaramente che non è dentro l'hotel ma nello stesso complesso turistico, nel Parco della Contessa.
+9. Se chiedono se ci sono solo docce o solo vasche, chiarire che disponiamo di camere sia con doccia sia con vasca idromassaggio.
