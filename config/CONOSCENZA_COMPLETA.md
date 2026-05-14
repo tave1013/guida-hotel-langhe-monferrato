@@ -16,6 +16,41 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
 - Wi-Fi: **gratuito**
 - Parcheggio: **gratuito**
 
+### 💰 Listino prezzi (per notte)
+> I prezzi includono sempre la ricca colazione a buffet.
+> È possibile richiedere tariffa senza colazione con riduzione.
+
+| Tipologia camera | Con colazione | Senza colazione | Note predisposizione letti |
+|---|---:|---:|---|
+| Singola | 90 € | 80 € | Letto singolo standard |
+| Matrimoniale | 130 € | 120 € | Letto matrimoniale per 2 persone |
+| Twin (Doppia) | 135 € | 125 € | Due letti singoli separati |
+| Tripla | 160 € | 135 € | Su richiesta: 3 singoli **oppure** 1 matrimoniale + 1 singolo |
+| Quadrupla | 200 € | 175 € | Su richiesta: 2 matrimoniali, 1 matrimoniale + 2 singoli, oppure 4 singoli |
+| Suite | 160 € | 140 € | Soluzione più esclusiva e spaziosa |
+
+**Nota importante:** per tripla e quadrupla, la preferenza sulla disposizione letti va indicata al momento della prenotazione.
+
+### 🚿 Servizi in camera
+- Bagno: doccia o vasca, bidet, asciugacapelli, asciugamani, set di cortesia.
+- Tecnologia: TV schermo piatto con canali via cavo, Wi‑Fi gratuito alta velocità, telefono.
+- Comfort: aria condizionata e riscaldamento regolabili, pavimento in marmo/piastrelle, prese vicino al letto, stand appendiabiti.
+- Extra: minibar, bollitore e macchina caffè/tè.
+
+### 🥐 Ristorazione e bar
+- Bar interno: area colazione a buffet.
+- Pranzo e cena: disponibili su richiesta o tramite convenzioni con partner locali.
+- Esigenze alimentari: disponibili prodotti colazione certificati senza glutine (segnalare in prenotazione).
+
+### 🏊 Piscina, parcheggio e servizi generali
+- Piscina: nel "Parco della Contessa", aperta in estate, gratuita per gli ospiti.
+- Parcheggio: ampio parcheggio privato all'aperto, gratuito, davanti all'hotel, senza prenotazione.
+- Libertà oraria: al check-in viene consegnato un codice personale per entrare/uscire in autonomia a qualsiasi ora.
+- Famiglie: culle gratuite su richiesta (disponibilità limitata), area giochi esterna e giochi da tavolo.
+- Accessibilità: struttura accessibile in sedia a rotelle; piani superiori raggiungibili con ascensore o scale.
+- Animali: ammessi su richiesta (può essere previsto un piccolo supplemento).
+- Business: sale meeting attrezzate su richiesta, con preventivo personalizzato.
+
 ### Regole e informazioni
 1. Check-in dalle 15:00 alle 22:30. Reception sempre disponibile.
 2. Check-out dalle 7:00 alle 11:00. Late check-out su richiesta e al costo di 20€ a camera.
@@ -31,6 +66,7 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
 - Reception (fisso): **+39 0141 961853**
 - WhatsApp (cell): **+39 351 8011730**
 - Email: **prenota@hotellanghemonferrato.com**
+- Modulo prenotazione online: **https://www.hotellanghemonferrato.com/prenota**
 
 ---
 
@@ -297,9 +333,9 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
 ## 5) MUOVERSI
 
 ### In auto
-- Asti Centro: 20 min, 17 km
-- Alba: 25 min, 20 km
-- Torino: 1 h, 79 km
+- Asti Centro: 15 min, 17 km
+- Alba: 30 min, 20 km
+- Torino: meno di 1 ora, 79 km
 - Milano: 1h 45min, 140 km
 - Canelli: 20 min, 16 km
 
@@ -324,3 +360,6 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
 2. Per eventi live o cambi orari, integrare con ricerca web sui domini autorizzati.
 3. Quando cita attività/ristoranti/farmacie, includere sempre il link diretto.
 4. Per contatti, mostrare sempre: fisso, WhatsApp, email.
+5. Se chiedono una camera tripla/quadrupla, ricordare che la disposizione letti è su richiesta ma va specificata in prenotazione.
+6. Se chiedono colazione, ricordare sempre che è inclusa nelle tariffe standard e che esiste opzione senza colazione con riduzione.
+7. Tono accogliente: usare frasi naturali e calde (non robotiche), ad esempio su libertà oraria con codice personale.
