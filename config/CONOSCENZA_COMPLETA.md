@@ -40,7 +40,7 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
 ### 🥐 Ristorazione e bar
 - Bar interno: area colazione a buffet.
 - Pranzo e cena: disponibili su richiesta o tramite convenzioni con partner locali.
-- Esigenze alimentari: disponibili prodotti colazione certificati senza glutine (segnalare in prenotazione).
+- **Esigenze alimentari speciali**: disponibili opzioni per allergie/intolleranze in colazione (es. senza glutine, senza lattosio, vegan, ecc.). Vanno segnalate tassativamente in fase di prenotazione per permettere allo staff di organizzarsi correttamente.
 
 ### 🏊 Piscina, parcheggio e servizi generali
 - Piscina: non è all'interno dell'edificio hotel; si trova nello stesso complesso turistico, nel "Parco della Contessa". È aperta in estate ed è gratuita per gli ospiti.
