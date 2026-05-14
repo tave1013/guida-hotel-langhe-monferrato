@@ -33,23 +33,32 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
 
 ### 🚿 Servizi in camera
 - Bagno: camere disponibili sia con doccia sia con vasca idromassaggio (oltre a bidet, asciugacapelli, asciugamani e set di cortesia).
-- Tecnologia: TV schermo piatto con canali via cavo, Wi‑Fi gratuito alta velocità, telefono.
+- Tecnologia: TV schermo piatto con canali via cavo, Wi‑Fi gratuito alta velocità, telefono interno (basta sollevare la cornetta per contattare la reception in qualsiasi momento).
 - Comfort: aria condizionata e riscaldamento regolabili, pavimento in marmo/piastrelle, prese vicino al letto, stand appendiabiti.
 - Extra: minibar, bollitore e macchina caffè/tè.
+- **Accesso in camera**: card magnetica fornita al check-in. Per attivare luci e servizi elettrici, inserire la card nell'apposito scompartimento vicino all'ingresso della camera (sistema di risparmio energetico).
 
 ### 🥐 Ristorazione e bar
-- Bar interno: area colazione a buffet.
+- **Colazione a buffet** (inclusa nella tariffa standard, orario: 7:30–10:30):
+  - **Bevande**: latte intero, latte di soia, latte senza lattosio, selezione di succhi di frutta.
+  - **Dolci**: torte e crostate artigianali (variano ogni giorno), fette biscottate, monoporzioni di Nutella, marmellate (fragola, ciliegia, albicocca, ecc.).
+  - **Frutta secca**: angolo dedicato con frutta secca varia.
+  - **Salato e Panetteria**: pane fresco (normale, integrale, ai cereali), possibilità di tostare il pane al momento, uova sode sempre disponibili.
 - Pranzo e cena: disponibili su richiesta o tramite convenzioni con partner locali.
 - **Esigenze alimentari speciali**: disponibili opzioni per allergie/intolleranze in colazione (es. senza glutine, senza lattosio, vegan, ecc.). Vanno segnalate tassativamente in fase di prenotazione per permettere allo staff di organizzarsi correttamente.
 
 ### 🏊 Piscina, parcheggio e servizi generali
 - Piscina: non è all'interno dell'edificio hotel; si trova nello stesso complesso turistico, nel "Parco della Contessa". È aperta in estate ed è gratuita per gli ospiti.
-- Parcheggio: ampio parcheggio privato all'aperto, gratuito, davanti all'hotel, senza prenotazione.
+- **Parcheggio e logistica gruppi**:
+  - Ampio parcheggio privato all'aperto, gratuito, davanti all'hotel, senza prenotazione.
+  - Ideale per mezzi di grandi dimensioni (pullman, autobus).
+  - I pullman possono scaricare comodamente davanti all'ingresso della struttura.
 - Libertà oraria: al check-in viene consegnato un codice personale per entrare/uscire in autonomia a qualsiasi ora.
 - Famiglie: culle gratuite su richiesta (disponibilità limitata), area giochi esterna e giochi da tavolo.
 - Accessibilità: struttura accessibile in sedia a rotelle; piani superiori raggiungibili con ascensore o scale.
 - Animali: ammessi su richiesta (può essere previsto un piccolo supplemento).
 - Business: sale meeting attrezzate su richiesta, con preventivo personalizzato.
+- **Servizi extra**: stampa di documenti, biglietti e prenotazioni disponibile in reception (chiedi pure allo staff).
 
 ### Regole e informazioni
 1. Check-in dalle 15:00 alle 22:30. Reception sempre disponibile.
