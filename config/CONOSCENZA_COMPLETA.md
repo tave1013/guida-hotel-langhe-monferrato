@@ -44,8 +44,11 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
   - **Dolci**: torte e crostate artigianali (variano ogni giorno), fette biscottate, monoporzioni di Nutella, marmellate (fragola, ciliegia, albicocca, ecc.).
   - **Frutta secca**: angolo dedicato con frutta secca varia.
   - **Salato e Panetteria**: pane fresco (normale, integrale, ai cereali), possibilità di tostare il pane al momento, uova sode sempre disponibili.
-- Pranzo e cena: disponibili su richiesta.
-- Per gruppi di almeno 30 persone possiamo organizzare un servizio catering su richiesta.
+- Pranzo: disponibile su richiesta.
+- **Cena**: In struttura non disponiamo di un servizio di ristorazione serale. Per eventi privati o gruppi di almeno 30 persone, organizziamo catering interno su richiesta.
+  - **Tariffe Catering Cena (minimo 30 persone)**:
+    - Menu: a partire da 35 € a persona (primo, secondo con contorno, dolce).
+    - Bevande: 7 € a persona (1/2 litro di acqua + 1/4 di vino locale).
 - **Esigenze alimentari speciali**: disponibili opzioni per allergie/intolleranze in colazione (es. senza glutine, senza lattosio, vegan, ecc.). Vanno segnalate tassativamente in fase di prenotazione per permettere allo staff di organizzarsi correttamente.
 
 ### 🏊 Piscina, parcheggio e servizi generali
@@ -58,7 +61,9 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
 - Famiglie: culle gratuite su richiesta (disponibilità limitata), area giochi esterna e giochi da tavolo.
 - Accessibilità: struttura accessibile in sedia a rotelle; piani superiori raggiungibili con ascensore o scale.
 - Animali: ammessi su richiesta (può essere previsto un piccolo supplemento).
-- Business: sale meeting attrezzate su richiesta, con preventivo personalizzato.
+- **Business - Sale Meeting e Servizi**:
+  - Sala meeting: 400 € + IVA al giorno (tariffa valida sia per giornata intera che per mezza giornata).
+  - Coffee break: 11 € a persona (selezione di dolce, salato, pasticceria secca, bevande calde: caffè, cappuccino, tè; bevande fredde: acqua e succhi di frutta).
 - **Servizi extra**: stampa di documenti, biglietti e prenotazioni disponibile in reception (chiedi pure allo staff).
 
 ### Regole e informazioni
