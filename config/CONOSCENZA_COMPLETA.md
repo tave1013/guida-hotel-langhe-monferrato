@@ -44,7 +44,8 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
   - **Dolci**: torte e crostate artigianali (variano ogni giorno), fette biscottate, monoporzioni di Nutella, marmellate (fragola, ciliegia, albicocca, ecc.).
   - **Frutta secca**: angolo dedicato con frutta secca varia.
   - **Salato e Panetteria**: pane fresco (normale, integrale, ai cereali), possibilità di tostare il pane al momento, uova sode sempre disponibili.
-- Pranzo e cena: disponibili su richiesta o tramite convenzioni con partner locali.
+- Pranzo e cena: disponibili su richiesta.
+- Per gruppi di almeno 30 persone possiamo organizzare un servizio catering su richiesta.
 - **Esigenze alimentari speciali**: disponibili opzioni per allergie/intolleranze in colazione (es. senza glutine, senza lattosio, vegan, ecc.). Vanno segnalate tassativamente in fase di prenotazione per permettere allo staff di organizzarsi correttamente.
 
 ### 🏊 Piscina, parcheggio e servizi generali
