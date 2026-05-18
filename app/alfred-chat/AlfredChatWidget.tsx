@@ -13,6 +13,16 @@ type ChatMessage = {
   content?: string
 }
 
+type ConversationLang = 'it' | 'en' | 'fr' | 'de' | 'es'
+
+const LOADING_TEXT: Record<ConversationLang, string> = {
+  it: 'Alfred sta scrivendo...',
+  en: 'Alfred is writing...',
+  fr: "Alfred est in train d'écrire...",
+  de: 'Alfred schreibt...',
+  es: 'Alfred está escribiendo...',
+}
+
 const LINK_STYLE = {
   color: '#800020',
   textDecoration: 'underline',
@@ -126,6 +136,30 @@ function getMessageText(message: ChatMessage): string {
   return ''
 }
 
+function detectLanguageFromText(text: string): ConversationLang {
+  const t = text.toLowerCase()
+  if (!t.trim()) return 'en'
+
+  const scores: Record<ConversationLang, number> = { it: 0, en: 0, fr: 0, de: 0, es: 0 }
+
+  const patterns: Record<ConversationLang, RegExp> = {
+    it: /\b(ciao|grazie|camera|camere|colazione|prenotazione|orario|per|con|senza)\b/gi,
+    en: /\b(hello|thanks|room|rooms|breakfast|booking|time|with|without|please)\b/gi,
+    fr: /\b(bonjour|merci|chambre|petit[- ]déjeuner|réservation|horaire|avec|sans)\b/gi,
+    de: /\b(hallo|danke|zimmer|frühstück|buchung|uhrzeit|mit|ohne)\b/gi,
+    es: /\b(hola|gracias|habitación|desayuno|reserva|horario|con|sin)\b/gi,
+  }
+
+  ;(Object.keys(patterns) as ConversationLang[]).forEach((lang) => {
+    const matches = t.match(patterns[lang])
+    scores[lang] = matches ? matches.length : 0
+  })
+
+  const ordered = (Object.entries(scores) as [ConversationLang, number][]).sort((a, b) => b[1] - a[1])
+  if (ordered[0][1] === 0) return 'en'
+  return ordered[0][0]
+}
+
 export default function AlfredChatWidget() {
   const [input, setInput] = useState('')
   const [avatarSrc, setAvatarSrc] = useState('/Alfred.webp')
@@ -136,6 +170,19 @@ export default function AlfredChatWidget() {
   })
 
   const isLoading = status === 'submitted' || status === 'streaming'
+
+  const loadingText = useMemo(() => {
+    const allMessages = messages as ChatMessage[]
+    for (let i = allMessages.length - 1; i >= 0; i -= 1) {
+      const message = allMessages[i]
+      if (message.role !== 'user' && message.role !== 'assistant') continue
+      const text = getMessageText(message)
+      if (!text) continue
+      const lang = detectLanguageFromText(text)
+      return LOADING_TEXT[lang] ?? LOADING_TEXT.en
+    }
+    return LOADING_TEXT.en
+  }, [messages])
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -267,7 +314,7 @@ export default function AlfredChatWidget() {
               opacity: 0.85,
             }}
           >
-            Alfred sta scrivendo…
+            {loadingText}
           </div>
         )}
 
