@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 
@@ -11,6 +11,105 @@ type ChatMessage = {
   role: string
   parts?: ChatPart[]
   content?: string
+}
+
+const LINK_STYLE = {
+  color: '#800020',
+  textDecoration: 'underline',
+  fontWeight: 600,
+} as const
+
+const TOKEN_REGEX = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|((?:https?:\/\/|www\.)[^\s<]+)|([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})|(\+?\d[\d\s()./-]{7,}\d)/gi
+const BOLD_REGEX = /\*\*(.+?)\*\*/g
+
+function cleanTrailingPunctuation(value: string) {
+  return value.replace(/[),.;!?]+$/g, '')
+}
+
+function renderBoldText(value: string, keyPrefix: string): ReactNode[] {
+  const output: ReactNode[] = []
+  let lastIndex = 0
+  let matchIndex = 0
+  BOLD_REGEX.lastIndex = 0
+
+  for (let match = BOLD_REGEX.exec(value); match; match = BOLD_REGEX.exec(value)) {
+    if (match.index > lastIndex) {
+      output.push(value.slice(lastIndex, match.index))
+    }
+
+    output.push(<strong key={`${keyPrefix}-b-${matchIndex++}`}>{match[1]}</strong>)
+    lastIndex = match.index + match[0].length
+  }
+
+  if (lastIndex < value.length) {
+    output.push(value.slice(lastIndex))
+  }
+
+  return output
+}
+
+function renderRichText(value: string): ReactNode[] {
+  const output: ReactNode[] = []
+  let lastIndex = 0
+  let tokenIndex = 0
+  TOKEN_REGEX.lastIndex = 0
+
+  for (let match = TOKEN_REGEX.exec(value); match; match = TOKEN_REGEX.exec(value)) {
+    if (match.index > lastIndex) {
+      output.push(...renderBoldText(value.slice(lastIndex, match.index), `text-${tokenIndex}`))
+    }
+
+    const [fullMatch, markdownLabel, markdownUrl, rawUrl, rawEmail, rawPhone] = match
+    const cleanedToken = cleanTrailingPunctuation(fullMatch)
+    const trailing = fullMatch.slice(cleanedToken.length)
+    const key = `token-${tokenIndex++}`
+
+    if (markdownLabel && markdownUrl) {
+      const href = cleanTrailingPunctuation(markdownUrl)
+      output.push(
+        <a key={key} href={href} target="_blank" rel="noopener noreferrer" style={LINK_STYLE}>
+          {markdownLabel}
+        </a>,
+      )
+    } else if (rawUrl) {
+      const normalized = cleanTrailingPunctuation(rawUrl)
+      const href = normalized.startsWith('www.') ? `https://${normalized}` : normalized
+      output.push(
+        <a key={key} href={href} target="_blank" rel="noopener noreferrer" style={LINK_STYLE}>
+          {normalized}
+        </a>,
+      )
+    } else if (rawEmail) {
+      const email = cleanTrailingPunctuation(rawEmail)
+      output.push(
+        <a key={key} href={`mailto:${email}`} target="_blank" rel="noopener noreferrer" style={LINK_STYLE}>
+          {email}
+        </a>,
+      )
+    } else if (rawPhone) {
+      const phone = cleanTrailingPunctuation(rawPhone)
+      const tel = phone.replace(/[^+\d]/g, '')
+      output.push(
+        <a key={key} href={`tel:${tel}`} target="_blank" rel="noopener noreferrer" style={LINK_STYLE}>
+          {phone}
+        </a>,
+      )
+    } else {
+      output.push(...renderBoldText(cleanedToken, `fallback-${tokenIndex}`))
+    }
+
+    if (trailing) {
+      output.push(trailing)
+    }
+
+    lastIndex = match.index + fullMatch.length
+  }
+
+  if (lastIndex < value.length) {
+    output.push(...renderBoldText(value.slice(lastIndex), `tail-${tokenIndex}`))
+  }
+
+  return output
 }
 
 function getMessageText(message: ChatMessage): string {
@@ -150,7 +249,7 @@ export default function AlfredChatWidget() {
                 whiteSpace: 'pre-wrap',
               }}
             >
-              {text}
+              {renderRichText(text)}
             </article>
           )
         })}
