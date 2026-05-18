@@ -10,10 +10,11 @@ const nextConfig: NextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              "frame-ancestors 'self' https://hotellanghemonferrato.com https://www.hotellanghemonferrato.com",
+              "frame-ancestors 'self' https://hotellanghemonferrato.com https://www.hotellanghemonferrato.com;",
           },
-          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Origin', value: 'https://hotellanghemonferrato.com' },
           { key: 'Access-Control-Allow-Methods', value: 'GET, OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' },
         ],
       },
       {
