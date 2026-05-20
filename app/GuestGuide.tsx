@@ -837,7 +837,7 @@ function SoggiornoTab({ lang }: { lang: Lang }) {
         {[
           { l: txt.contactsTitle.includes('Reception') ? 'Reception' : (lang === 'fr' ? 'Réception' : lang === 'de' ? 'Rezeption' : lang === 'es' ? 'Recepción' : 'Reception'), v: '+39 0141 961853', href: 'tel:+390141961853' },
           { l: 'WhatsApp', v: '+39 3518011730', href: 'https://wa.me/393518011730' },
-          { l: 'Email', v: 'prenota@hotellanghemonferrato.com', href: 'mailto:prenota@hotellanghemonferrato.com' },
+          { l: 'Email', v: 'booking@hotellanghemonferrato.com', href: 'mailto:booking@hotellanghemonferrato.com' },
         ].map((c, i) => (
           <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: i < 2 ? `1px solid ${C.brownAccent}` : 'none' }}>
             <span style={{ color: '#FFFFFF', fontSize: 13 }}>{c.l}</span>

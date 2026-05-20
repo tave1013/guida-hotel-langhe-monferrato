@@ -80,7 +80,7 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
 ### Contatti reception
 - Reception (fisso): **+39 0141 961853**
 - WhatsApp (cell): **+39 351 8011730**
-- Email: **prenota@hotellanghemonferrato.com**
+- Email: **booking@hotellanghemonferrato.com**
 - Modulo prenotazione online: **https://www.hotellanghemonferrato.com/prenota**
 
 ---
