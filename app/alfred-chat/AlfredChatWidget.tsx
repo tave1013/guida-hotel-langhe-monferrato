@@ -531,7 +531,7 @@ const USER_BUBBLE: React.CSSProperties = {
 
 export default function AlfredChatWidget() {
   const [input, setInput] = useState('')
-  const [avatarSrc, setAvatarSrc] = useState('/alfred.webp')
+  const [avatarSrc, setAvatarSrc] = useState('/Alfred.webp')
   const [lightbox, setLightbox] = useState<LightboxState>(null)
   const endRef = useRef<HTMLDivElement>(null)
 
