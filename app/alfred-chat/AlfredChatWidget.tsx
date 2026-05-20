@@ -494,12 +494,29 @@ function getMessageText(message: ChatMessage): string {
   return ''
 }
 
+function getLastUserText(messages: ChatMessage[]): string {
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    const m = messages[i]
+    if (m.role !== 'user') continue
+    const text = getMessageText(m)
+    if (text) return text
+  }
+  return ''
+}
+
 function detectLanguageFromText(text: string): ConversationLang {
   const t = text.toLowerCase()
-  if (!t.trim()) return 'en'
+  if (!t.trim()) return 'it'
+
+  // Strong hints first
+  if (/[¿¡ñ]/.test(t) || /\b(gracias|por favor|dónde|donde|cómo|como|cuándo|cuando|puedo|podría|quisiera)\b/.test(t)) return 'es'
+  if (/[äöüß]/.test(t) || /\b(guten tag|guten morgen|wie viel|können sie|ich möchte|wo ist|wann ist)\b/.test(t)) return 'de'
+  if (/[àâçéèêëîïôùûüÿœ]/.test(t) || /\b(s'il vous plaît|je voudrais|pouvez-vous|où est|quand est|combien)\b/.test(t)) return 'fr'
+  if (/\b(please|thank you|can you|could you|would you|where is|what time|how much|i need|i want)\b/.test(t)) return 'en'
+
   const scores: Record<ConversationLang, number> = { it: 0, en: 0, fr: 0, de: 0, es: 0 }
   const patterns: Record<ConversationLang, RegExp> = {
-    it: /\b(ciao|grazie|camera|camere|colazione|prenotazione|orario|per|con|senza)\b/gi,
+    it: /\b(ciao|salve|grazie|camera|camere|colazione|prenotazione|orario|foto|hotel|albergo|per|con|senza|dove|quando|come)\b/gi,
     en: /\b(hello|thanks|room|rooms|breakfast|booking|time|with|without|please)\b/gi,
     fr: /\b(bonjour|merci|chambre|petit[- ]déjeuner|réservation|horaire|avec|sans)\b/gi,
     de: /\b(hallo|danke|zimmer|frühstück|buchung|uhrzeit|mit|ohne)\b/gi,
@@ -510,7 +527,7 @@ function detectLanguageFromText(text: string): ConversationLang {
     scores[lang] = matches ? matches.length : 0
   })
   const ordered = (Object.entries(scores) as [ConversationLang, number][]).sort((a, b) => b[1] - a[1])
-  if (ordered[0][1] === 0) return 'en'
+  if (ordered[0][1] === 0) return 'it'
   return ordered[0][0]
 }
 
@@ -562,14 +579,9 @@ export default function AlfredChatWidget() {
 
   const loadingText = useMemo(() => {
     const all = messages as ChatMessage[]
-    for (let i = all.length - 1; i >= 0; i--) {
-      const m = all[i]
-      if (m.role !== 'user' && m.role !== 'assistant') continue
-      const text = getMessageText(m)
-      if (!text) continue
-      return LOADING_TEXT[detectLanguageFromText(text)] ?? LOADING_TEXT.en
-    }
-    return LOADING_TEXT.en
+    const lastUserText = getLastUserText(all)
+    const lang = detectLanguageFromText(lastUserText)
+    return LOADING_TEXT[lang] ?? LOADING_TEXT.it
   }, [messages])
 
   useEffect(() => {

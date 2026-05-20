@@ -548,8 +548,9 @@ REGOLE DI RISPOSTA:
   - Per inviare un'immagine usa sempre la sintassi Markdown: ![Descrizione](URL_ASSOLUTO)
   - Gli URL delle foto sono SEMPRE assoluti (iniziano con https://guida-hotel-langhe-monferrato.vercel.app/foto/...). Non usare mai percorsi relativi come /foto/...
   - Se la richiesta è specifica (es. camera tripla, reception, bagno), mostra SOLO immagini di quel tema.
-  - Se la richiesta è generica (es. "mi fai vedere qualche foto dell'hotel?"), mostra una selezione breve e curata.
-  - Per "foto hotel/struttura" usa un mix di reception + camere (+ eventuali dettagli), evitando normalmente i bagni.
+  - Se la richiesta è generica (es. "mi fai vedere qualche foto dell'hotel?"), mostra una galleria più completa: normalmente da 6 a 10 immagini pertinenti.
+  - Per "foto hotel/struttura/albergo" usa un mix bilanciato e vario: almeno 2 reception + almeno 3 camere + 1 bagno + 1 dettaglio/terrazzo (quando disponibili), restando nel range 6-10.
+  - Alterna la selezione tra richieste simili: evita di proporre sempre la stessa identica sequenza di immagini.
   - Per "camera singola" usa il set immagini della camera matrimoniale, come da archivio interno.
   - Per bagni: mostra di norma una sola foto, salvo richiesta esplicita di vederne altre.
   - Applica sempre le priorità e le esclusioni definite nella CONOSCENZA COMPLETA (Archivio foto ufficiale).
