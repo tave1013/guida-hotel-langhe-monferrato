@@ -160,7 +160,6 @@ const CELL_STYLE: React.CSSProperties = {
   overflow: 'hidden',
   borderRadius: 10,
   cursor: 'zoom-in',
-  flexShrink: 0,
 }
 
 const IMG_FILL: React.CSSProperties = {
@@ -189,7 +188,7 @@ function SmartImageGrid({
         style={{ ...CELL_STYLE, width: GRID_W, height: 176, borderRadius: 12 }}
         onClick={() => onImageClick(items, 0)}
       >
-        <img src={shown[0].src} alt={shown[0].alt} style={IMG_FILL} loading="lazy" />
+        <img src={shown[0].src} alt={shown[0].alt} style={IMG_FILL} loading="eager" />
       </div>
     )
   }
@@ -198,8 +197,8 @@ function SmartImageGrid({
     return (
       <div style={{ display: 'flex', gap: GRID_GAP, width: GRID_W, height: 132 }}>
         {shown.map((item, i) => (
-          <div key={i} style={{ ...CELL_STYLE, flex: 1 }} onClick={() => onImageClick(items, i)}>
-            <img src={item.src} alt={item.alt} style={IMG_FILL} loading="lazy" />
+          <div key={i} style={{ ...CELL_STYLE, flex: 1, minWidth: 0, height: 132 }} onClick={() => onImageClick(items, i)}>
+            <img src={item.src} alt={item.alt} style={IMG_FILL} loading="eager" />
           </div>
         ))}
       </div>
@@ -210,16 +209,16 @@ function SmartImageGrid({
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: GRID_GAP, width: GRID_W }}>
         <div style={{ ...CELL_STYLE, height: 148 }} onClick={() => onImageClick(items, 0)}>
-          <img src={shown[0].src} alt={shown[0].alt} style={IMG_FILL} loading="lazy" />
+          <img src={shown[0].src} alt={shown[0].alt} style={IMG_FILL} loading="eager" />
         </div>
         <div style={{ display: 'flex', gap: GRID_GAP, height: 108 }}>
           {shown.slice(1).map((item, i) => (
             <div
               key={i}
-              style={{ ...CELL_STYLE, flex: 1 }}
+              style={{ ...CELL_STYLE, flex: 1, minWidth: 0, height: 108 }}
               onClick={() => onImageClick(items, i + 1)}
             >
-              <img src={item.src} alt={item.alt} style={IMG_FILL} loading="lazy" />
+              <img src={item.src} alt={item.alt} style={IMG_FILL} loading="eager" />
             </div>
           ))}
         </div>
@@ -242,7 +241,7 @@ function SmartImageGrid({
         const isLast = i === MAX - 1 && overflow > 0
         return (
           <div key={i} style={CELL_STYLE} onClick={() => onImageClick(items, i)}>
-            <img src={item.src} alt={item.alt} style={IMG_FILL} loading="lazy" />
+            <img src={item.src} alt={item.alt} style={IMG_FILL} loading="eager" />
             {isLast && (
               <div
                 style={{
@@ -679,9 +678,18 @@ export default function AlfredChatWidget() {
         })}
 
         {isLoading && (
-          <article style={{ ...ALFRED_BUBBLE, padding: '9px 12px', opacity: 0.82, fontSize: 13 }}>
+          <div
+            style={{
+              alignSelf: 'flex-start',
+              fontSize: 13,
+              opacity: 0.6,
+              paddingLeft: 4,
+              fontStyle: 'italic',
+              color: '#5a3e2b',
+            }}
+          >
             {loadingText}
-          </article>
+          </div>
         )}
 
         {error && (
