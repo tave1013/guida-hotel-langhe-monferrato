@@ -341,6 +341,9 @@
       panel.style.borderRadius = ''
       panel.style.zIndex = ''
       panel.style.transition = ''
+    } else if (event.data.type === 'alfred-booking-open' && typeof event.data.url === 'string') {
+      closePanel()
+      window.location.href = event.data.url
     }
   })
 })()

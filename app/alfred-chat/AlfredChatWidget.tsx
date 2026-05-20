@@ -64,6 +64,32 @@ function cleanStreamingArtifacts(text: string): string {
 
 const GRID_W = 244
 const GRID_GAP = 3
+const BOOKING_URL = 'https://www.hotellanghemonferrato.com/prenota'
+const CHAT_STORAGE_KEY = 'alfred_widget_chat_v1'
+
+function isBookingLink(href: string): boolean {
+  try {
+    const url = new URL(href)
+    const host = url.hostname.replace(/^www\./, '')
+    return host === 'hotellanghemonferrato.com' && url.pathname.startsWith('/prenota')
+  } catch {
+    return false
+  }
+}
+
+function openBookingInSameTab(href: string) {
+  try {
+    window.parent.postMessage({ type: 'alfred-booking-open', url: href }, '*')
+  } catch {
+    // noop
+  }
+
+  try {
+    window.top!.location.href = href
+  } catch {
+    window.location.href = href
+  }
+}
 
 // ─── Text rendering ───────────────────────────────────────────────────────────
 
@@ -99,8 +125,20 @@ function renderRichText(value: string): ReactNode[] {
     const key = `token-${tokenIndex++}`
     if (markdownLabel && markdownUrl) {
       const href = cleanTrailingPunctuation(markdownUrl)
+      const bookingLink = isBookingLink(href)
       output.push(
-        <a key={key} href={href} target="_blank" rel="noopener noreferrer" style={LINK_STYLE}>
+        <a
+          key={key}
+          href={href}
+          target={bookingLink ? '_top' : '_blank'}
+          rel={bookingLink ? undefined : 'noopener noreferrer'}
+          style={LINK_STYLE}
+          onClick={(e) => {
+            if (!bookingLink) return
+            e.preventDefault()
+            openBookingInSameTab(href)
+          }}
+        >
           {markdownLabel}
         </a>,
       )
@@ -130,7 +168,8 @@ function renderRichText(value: string): ReactNode[] {
     } else {
       output.push(...renderBoldText(cleanedToken, `fallback-${tokenIndex}`))
     }
-    if (trailing) output.push(trailing)
+    const trailingText = markdownLabel && markdownUrl ? trailing.replace(/^\)+/, '') : trailing
+    if (trailingText) output.push(trailingText)
     lastIndex = m.index + fullMatch.length
   }
   if (lastIndex < value.length)
@@ -561,6 +600,17 @@ const USER_BUBBLE: React.CSSProperties = {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function AlfredChatWidget() {
+  const [initialMessages] = useState<ChatMessage[]>(() => {
+    try {
+      const raw = localStorage.getItem(CHAT_STORAGE_KEY)
+      if (!raw) return []
+      const parsed = JSON.parse(raw)
+      if (!Array.isArray(parsed)) return []
+      return parsed.filter((m) => m && (m.role === 'user' || m.role === 'assistant'))
+    } catch {
+      return []
+    }
+  })
   const [input, setInput] = useState('')
   const [avatarSrc, setAvatarSrc] = useState('/Alfred.webp')
   const [lightbox, setLightbox] = useState<LightboxState>(null)
@@ -571,7 +621,7 @@ export default function AlfredChatWidget() {
   }, [])
   const closeLightbox = useCallback(() => setLightbox(null), [])
 
-  const { messages, sendMessage, status, error } = useChat({
+  const { messages, sendMessage, status, error, setMessages } = useChat({
     transport: new DefaultChatTransport({ api: '/api/alfred' }),
   })
 
@@ -587,6 +637,20 @@ export default function AlfredChatWidget() {
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading])
+
+  useEffect(() => {
+    if (!initialMessages.length) return
+    setMessages(initialMessages as never)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages))
+    } catch {
+      // noop
+    }
+  }, [messages])
 
   const onSend = useCallback(() => {
     const text = input.trim()
