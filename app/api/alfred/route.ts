@@ -183,7 +183,6 @@ function detectLanguageFromText(text: string): ConversationLang {
   if (/[¿¡ñ]/.test(t) || /\b(gracias|por favor|dónde|donde|cómo|como|cuándo|cuando|puedo|podría|quisiera)\b/.test(t)) return 'es'
   if (/[äöüß]/.test(t) || /\b(guten tag|guten morgen|wie viel|können sie|ich möchte|wo ist|wann ist)\b/.test(t)) return 'de'
   if (/[àâçéèêëîïôùûüÿœ]/.test(t) || /\b(s'il vous plaît|je voudrais|pouvez-vous|où est|quand est|combien)\b/.test(t)) return 'fr'
-  if (/\b(please|thank you|can you|could you|would you|where is|what time|how much|i need|i want)\b/.test(t)) return 'en'
 
   const scores: Record<ConversationLang, number> = { it: 0, en: 0, fr: 0, de: 0, es: 0 }
 
@@ -202,6 +201,9 @@ function detectLanguageFromText(text: string): ConversationLang {
   const enWords = /\b(hello|hi|hey|thanks|thank|please|where|when|how|what|which|who|can|could|would|should|is|are|have|has|do|does|the|and|for|with|from|your|our|my|its|any|some|this|that|there|here|room|rooms|breakfast|check|wifi|restaurant|booking|reservation|available|early|late|need|want|like|get|time|day|night|week|price|cost|i'm|i'd|i'll|i've|it's|don't|doesn't|isn't|aren't)\b/gi
   const enMatches = t.match(enWords)
   scores.en = enMatches ? enMatches.length : 0
+  if (/\b(please|thank you|can you|could you|would you|where is|what time|how much|i need|i want)\b/.test(t)) {
+    scores.en += 3
+  }
 
   const itWords = /\b(ciao|salve|grazie|prego|dove|quando|come|cosa|quale|quali|ho|hai|ha|abbiamo|avete|sono|sei|è|siamo|siete|posso|puoi|può|voglio|vorrei|camera|camere|colazione|parcheggio|orario|orari|prenotazione|disponibile|benvenuto|buongiorno|buonasera|buonanotte|mi|mio|mia|il|lo|la|gli|le|un|una|del|della|dei|delle|per|con|da|di|in|a|che|non|si|ma|anche|più|molto|tutto|tutti|questo|questa|questi|queste)\b/gi
   const itMatches = t.match(itWords)
@@ -223,6 +225,19 @@ function detectLanguageFromText(text: string): ConversationLang {
   if (nonItalianWinner) return nonItalianWinner
 
   return winners[0]
+}
+
+function getPrimaryUtteranceForLangDetection(text: string): string {
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim().replace(/^[>\-•*\s]+/, '').trim())
+    .filter(Boolean)
+
+  if (lines.length === 0) return text.trim()
+
+  // Prefer the first meaningful line, which is usually the actual user request
+  const firstMeaningful = lines.find((line) => /[a-zàèéìòù]/i.test(line))
+  return firstMeaningful ?? lines[0]
 }
 
 function extractLastUserText(messages: UIMessage[]): string {
@@ -284,7 +299,7 @@ function detectConversationLanguage(messages: UIMessage[]): ConversationLang {
   const userTexts = extractUserTextsNewestFirst(messages)
   if (userTexts.length === 0) return 'it'
 
-  const latest = userTexts[0]
+  const latest = getPrimaryUtteranceForLangDetection(userTexts[0])
   const latestLang = detectLanguageFromText(latest)
   if (latestLang !== 'it') return latestLang
 
@@ -293,7 +308,7 @@ function detectConversationLanguage(messages: UIMessage[]): ConversationLang {
 
   if (isShortFollowUp) {
     for (let i = 1; i < userTexts.length; i += 1) {
-      const prevLang = detectLanguageFromText(userTexts[i])
+      const prevLang = detectLanguageFromText(getPrimaryUtteranceForLangDetection(userTexts[i]))
       if (prevLang !== 'it') return prevLang
     }
   }
