@@ -643,7 +643,7 @@ const MUOVERSI = [
     title: 'Taxi & Transfer',
     colorBg: '#F8EFF1',
     info: [
-      { label: 'Taxi Costigliole', val: '+39 0141 96 XXXX' },
+      { label: 'Taxi Costigliole', val: 'Chiedere alla reception' },
       { label: 'Transfer su prenotazione', val: 'Chiedere alla reception' },
     ]
   },

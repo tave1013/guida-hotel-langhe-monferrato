@@ -1969,7 +1969,7 @@ export const T = {
         {
           title: 'Taxi & Transfer',
           info: [
-            { label: 'Taxi Costigliole', val: '+39 0141 96 XXXX' },
+            { label: 'Taxi Costigliole', val: 'Chiedere alla reception' },
             { label: 'Transfer su prenotazione', val: 'Chiedere alla reception' },
           ],
         },
@@ -2007,7 +2007,7 @@ export const T = {
         {
           title: 'Taxi & Transfer',
           info: [
-            { label: 'Taxi Costigliole', val: '+39 0141 96 XXXX' },
+            { label: 'Taxi Costigliole', val: 'Ask at reception' },
             { label: 'Transfer on request', val: 'Ask at reception' },
           ],
         },
@@ -2045,7 +2045,7 @@ export const T = {
         {
           title: 'Taxi & Transfer',
           info: [
-            { label: 'Taxi Costigliole', val: '+39 0141 96 XXXX' },
+            { label: 'Taxi Costigliole', val: 'Demander à la réception' },
             { label: 'Transfer sur réservation', val: 'Demander à la réception' },
           ],
         },
@@ -2083,7 +2083,7 @@ export const T = {
         {
           title: 'Taxi & Transfer',
           info: [
-            { label: 'Taxi Costigliole', val: '+39 0141 96 XXXX' },
+            { label: 'Taxi Costigliole', val: 'An der Rezeption erfragen' },
             { label: 'Transfer auf Anfrage', val: 'An der Rezeption erfragen' },
           ],
         },
@@ -2121,7 +2121,7 @@ export const T = {
         {
           title: 'Taxi & Transfer',
           info: [
-            { label: 'Taxi Costigliole', val: '+39 0141 96 XXXX' },
+            { label: 'Taxi Costigliole', val: 'Pedir en recepción' },
             { label: 'Transfer con reserva', val: 'Pedir en recepción' },
           ],
         },
