@@ -112,13 +112,19 @@ function renderBoldText(value: string, keyPrefix: string): ReactNode[] {
 }
 
 function renderRichText(value: string): ReactNode[] {
+  const normalized = value
+    // Hide markdown heading syntax like ### Titolo
+    .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+    // Render markdown lists as plain bullets without showing raw '- '
+    .replace(/^\s*[-*]\s+/gm, '• ')
+
   const output: ReactNode[] = []
   let lastIndex = 0
   let tokenIndex = 0
   TOKEN_REGEX.lastIndex = 0
-  for (let m = TOKEN_REGEX.exec(value); m; m = TOKEN_REGEX.exec(value)) {
+  for (let m = TOKEN_REGEX.exec(normalized); m; m = TOKEN_REGEX.exec(normalized)) {
     if (m.index > lastIndex)
-      output.push(...renderBoldText(value.slice(lastIndex, m.index), `text-${tokenIndex}`))
+      output.push(...renderBoldText(normalized.slice(lastIndex, m.index), `text-${tokenIndex}`))
     const [fullMatch, markdownLabel, markdownUrl, rawUrl, rawEmail, rawPhone] = m
     const cleanedToken = cleanTrailingPunctuation(fullMatch)
     const trailing = fullMatch.slice(cleanedToken.length)
@@ -172,8 +178,8 @@ function renderRichText(value: string): ReactNode[] {
     if (trailingText) output.push(trailingText)
     lastIndex = m.index + fullMatch.length
   }
-  if (lastIndex < value.length)
-    output.push(...renderBoldText(value.slice(lastIndex), `tail-${tokenIndex}`))
+  if (lastIndex < normalized.length)
+    output.push(...renderBoldText(normalized.slice(lastIndex), `tail-${tokenIndex}`))
   return output
 }
 
