@@ -615,14 +615,13 @@ export default function AlfredChatWidget() {
   const [avatarSrc, setAvatarSrc] = useState('/Alfred.webp')
   const [lightbox, setLightbox] = useState<LightboxState>(null)
   const endRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const openLightbox = useCallback((images: ImageItem[], index: number) => {
     setLightbox({ images, index })
   }, [])
   const closeLightbox = useCallback(() => setLightbox(null), [])
 
-  const { messages, sendMessage, status, error, setMessages } = useChat({
+  const { messages, sendMessage, status, error, setMessages, stop } = useChat({
     transport: new DefaultChatTransport({ api: '/api/alfred' }),
   })
 
@@ -661,30 +660,12 @@ export default function AlfredChatWidget() {
     setInput('')
   }, [input, isLoading, sendMessage])
 
+  const onStop = useCallback(() => {
+    if (!isLoading) return
+    stop()
+  }, [isLoading, stop])
+
   const chatMessages = messages as ChatMessage[]
-
-  const latestUserIndex = useMemo(() => {
-    for (let i = chatMessages.length - 1; i >= 0; i -= 1) {
-      if (chatMessages[i]?.role === 'user') return i
-    }
-    return -1
-  }, [chatMessages])
-
-  const editLastUserMessage = useCallback(
-    (index: number, originalText: string) => {
-      if (index !== latestUserIndex || !originalText.trim()) return
-      if (isLoading) return
-
-      setInput(originalText)
-      const trimmedConversation = chatMessages.slice(0, index)
-      setMessages(trimmedConversation as never)
-
-      requestAnimationFrame(() => {
-        inputRef.current?.focus()
-      })
-    },
-    [chatMessages, isLoading, latestUserIndex, setMessages],
-  )
 
   return (
     <main
@@ -753,45 +734,17 @@ export default function AlfredChatWidget() {
           </article>
         )}
 
-        {chatMessages.map((message, index) => {
+        {chatMessages.map((message) => {
           if (message.role !== 'assistant' && message.role !== 'user') return null
           const text = getMessageText(message)
           if (!text) return null
           const isUser = message.role === 'user'
-          const canEditThisMessage = isUser && index === latestUserIndex && !isLoading
 
           if (isUser) {
             return (
-              <div key={message.id} style={{ alignSelf: 'flex-end', display: 'flex', alignItems: 'flex-end', gap: 6 }}>
-                {canEditThisMessage && (
-                  <button
-                    type="button"
-                    onClick={() => editLastUserMessage(index, text)}
-                    aria-label="Modifica ultimo messaggio"
-                    title="Modifica ultimo messaggio"
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 7,
-                      border: '1px solid #ccb297',
-                      background: '#f7ecde',
-                      color: '#6c4a2f',
-                      fontSize: 13,
-                      lineHeight: 1,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    □
-                  </button>
-                )}
-                <article style={{ ...USER_BUBBLE }}>
-                  {renderRichText(text)}
-                </article>
-              </div>
+              <article key={message.id} style={{ alignSelf: 'flex-end', ...USER_BUBBLE }}>
+                {renderRichText(text)}
+              </article>
             )
           }
 
@@ -870,13 +823,16 @@ export default function AlfredChatWidget() {
           }}
         >
           <textarea
-            ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
-                onSend()
+                if (isLoading) {
+                  onStop()
+                } else {
+                  onSend()
+                }
               }
             }}
             rows={1}
@@ -897,23 +853,24 @@ export default function AlfredChatWidget() {
           />
           <button
             type="button"
-            onClick={onSend}
-            disabled={isLoading || !input.trim()}
-            aria-label="Invia messaggio"
+            onClick={isLoading ? onStop : onSend}
+            disabled={!isLoading && !input.trim()}
+            aria-label={isLoading ? 'Interrompi risposta' : 'Invia messaggio'}
+            title={isLoading ? 'Interrompi risposta' : 'Invia messaggio'}
             style={{
               border: 'none',
-              background: isLoading || !input.trim() ? '#cdb79b' : '#6c4a2f',
+              background: !isLoading && !input.trim() ? '#cdb79b' : '#6c4a2f',
               color: '#f8f3ea',
               width: 40,
               height: 40,
               borderRadius: 12,
-              cursor: isLoading || !input.trim() ? 'not-allowed' : 'pointer',
+              cursor: !isLoading && !input.trim() ? 'not-allowed' : 'pointer',
               boxShadow: '0 6px 14px rgba(30,17,10,0.18)',
-              fontSize: 18,
+              fontSize: isLoading ? 15 : 18,
               flexShrink: 0,
             }}
           >
-            ➤
+            {isLoading ? '□' : '➤'}
           </button>
         </div>
       </footer>
