@@ -866,11 +866,27 @@ export default function AlfredChatWidget() {
               borderRadius: 12,
               cursor: !isLoading && !input.trim() ? 'not-allowed' : 'pointer',
               boxShadow: '0 6px 14px rgba(30,17,10,0.18)',
-              fontSize: isLoading ? 15 : 18,
+              fontSize: isLoading ? 0 : 18,
               flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            {isLoading ? '□' : '➤'}
+            {isLoading ? (
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 13,
+                  height: 13,
+                  background: '#f8f3ea',
+                  borderRadius: 3,
+                  display: 'block',
+                }}
+              />
+            ) : (
+              '➤'
+            )}
           </button>
         </div>
       </footer>
