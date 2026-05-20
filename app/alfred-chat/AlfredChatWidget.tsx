@@ -1,24 +1,39 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+  type TouchEvent,
+} from 'react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 
-type ChatPart = { type?: string; text?: string }
+// ─── Types ────────────────────────────────────────────────────────────────────
 
+type ChatPart = { type?: string; text?: string }
 type ChatMessage = {
   id: string
   role: string
   parts?: ChatPart[]
   content?: string
 }
-
 type ConversationLang = 'it' | 'en' | 'fr' | 'de' | 'es'
+type ImageItem = { alt: string; src: string }
+type TextBlock = { type: 'text'; content: string }
+type ImagesBlock = { type: 'images'; items: ImageItem[] }
+type MessageBlock = TextBlock | ImagesBlock
+type LightboxState = { images: ImageItem[]; index: number } | null
+
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const LOADING_TEXT: Record<ConversationLang, string> = {
   it: 'Alfred sta scrivendo...',
   en: 'Alfred is writing...',
-  fr: "Alfred est in train d'écrire...",
+  fr: "Alfred est en train d'écrire...",
   de: 'Alfred schreibt...',
   es: 'Alfred está escribiendo...',
 }
@@ -29,8 +44,17 @@ const LINK_STYLE = {
   fontWeight: 600,
 } as const
 
-const TOKEN_REGEX = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|((?:https?:\/\/|www\.)[^\s<]+)|([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})|(\+?\d[\d\s()./-]{7,}\d)/gi
+const TOKEN_REGEX =
+  /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|((?:https?:\/\/|www\.)[^\s<]+)|([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})|(\+?\d[\d\s()./-]{7,}\d)/gi
 const BOLD_REGEX = /\*\*(.+?)\*\*/g
+
+// Matches both absolute (https://...) and relative (/foto/...) image URLs
+const IMAGE_MD_REGEX = /!\[([^\]]*)\]\(((?:https?:\/\/|\/)[^\s)]+)\)/g
+
+const GRID_W = 244
+const GRID_GAP = 3
+
+// ─── Text rendering ───────────────────────────────────────────────────────────
 
 function cleanTrailingPunctuation(value: string) {
   return value.replace(/[),.;!?]+$/g, '')
@@ -41,20 +65,12 @@ function renderBoldText(value: string, keyPrefix: string): ReactNode[] {
   let lastIndex = 0
   let matchIndex = 0
   BOLD_REGEX.lastIndex = 0
-
-  for (let match = BOLD_REGEX.exec(value); match; match = BOLD_REGEX.exec(value)) {
-    if (match.index > lastIndex) {
-      output.push(value.slice(lastIndex, match.index))
-    }
-
-    output.push(<strong key={`${keyPrefix}-b-${matchIndex++}`}>{match[1]}</strong>)
-    lastIndex = match.index + match[0].length
+  for (let m = BOLD_REGEX.exec(value); m; m = BOLD_REGEX.exec(value)) {
+    if (m.index > lastIndex) output.push(value.slice(lastIndex, m.index))
+    output.push(<strong key={`${keyPrefix}-b-${matchIndex++}`}>{m[1]}</strong>)
+    lastIndex = m.index + m[0].length
   }
-
-  if (lastIndex < value.length) {
-    output.push(value.slice(lastIndex))
-  }
-
+  if (lastIndex < value.length) output.push(value.slice(lastIndex))
   return output
 }
 
@@ -63,17 +79,13 @@ function renderRichText(value: string): ReactNode[] {
   let lastIndex = 0
   let tokenIndex = 0
   TOKEN_REGEX.lastIndex = 0
-
-  for (let match = TOKEN_REGEX.exec(value); match; match = TOKEN_REGEX.exec(value)) {
-    if (match.index > lastIndex) {
-      output.push(...renderBoldText(value.slice(lastIndex, match.index), `text-${tokenIndex}`))
-    }
-
-    const [fullMatch, markdownLabel, markdownUrl, rawUrl, rawEmail, rawPhone] = match
+  for (let m = TOKEN_REGEX.exec(value); m; m = TOKEN_REGEX.exec(value)) {
+    if (m.index > lastIndex)
+      output.push(...renderBoldText(value.slice(lastIndex, m.index), `text-${tokenIndex}`))
+    const [fullMatch, markdownLabel, markdownUrl, rawUrl, rawEmail, rawPhone] = m
     const cleanedToken = cleanTrailingPunctuation(fullMatch)
     const trailing = fullMatch.slice(cleanedToken.length)
     const key = `token-${tokenIndex++}`
-
     if (markdownLabel && markdownUrl) {
       const href = cleanTrailingPunctuation(markdownUrl)
       output.push(
@@ -107,38 +119,24 @@ function renderRichText(value: string): ReactNode[] {
     } else {
       output.push(...renderBoldText(cleanedToken, `fallback-${tokenIndex}`))
     }
-
-    if (trailing) {
-      output.push(trailing)
-    }
-
-    lastIndex = match.index + fullMatch.length
+    if (trailing) output.push(trailing)
+    lastIndex = m.index + fullMatch.length
   }
-
-  if (lastIndex < value.length) {
+  if (lastIndex < value.length)
     output.push(...renderBoldText(value.slice(lastIndex), `tail-${tokenIndex}`))
-  }
-
   return output
 }
 
-// ─── Image parsing ───────────────────────────────────────────────────────────
-
-const IMAGE_MD_REGEX = /!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g
-
-type TextBlock = { type: 'text'; content: string }
-type ImagesBlock = { type: 'images'; items: { alt: string; src: string }[] }
-type MessageBlock = TextBlock | ImagesBlock
+// ─── Message parsing ──────────────────────────────────────────────────────────
 
 function parseMessageBlocks(text: string): MessageBlock[] {
   const blocks: MessageBlock[] = []
   let lastIndex = 0
-  let pendingImages: { alt: string; src: string }[] = []
+  let pendingImages: ImageItem[] = []
   IMAGE_MD_REGEX.lastIndex = 0
-
-  let match: RegExpExecArray | null
-  while ((match = IMAGE_MD_REGEX.exec(text)) !== null) {
-    const before = text.slice(lastIndex, match.index).replace(/^\n+/, '').trimEnd()
+  let m: RegExpExecArray | null
+  while ((m = IMAGE_MD_REGEX.exec(text)) !== null) {
+    const before = text.slice(lastIndex, m.index).replace(/^\n+/, '').trimEnd()
     if (before) {
       if (pendingImages.length) {
         blocks.push({ type: 'images', items: pendingImages })
@@ -146,148 +144,324 @@ function parseMessageBlocks(text: string): MessageBlock[] {
       }
       blocks.push({ type: 'text', content: before })
     }
-    pendingImages.push({ alt: match[1], src: match[2] })
-    lastIndex = match.index + match[0].length
+    pendingImages.push({ alt: m[1], src: m[2] })
+    lastIndex = m.index + m[0].length
   }
-
-  if (pendingImages.length) {
-    blocks.push({ type: 'images', items: pendingImages })
-  }
-
+  if (pendingImages.length) blocks.push({ type: 'images', items: pendingImages })
   const tail = text.slice(lastIndex).replace(/^\n+/, '').trimEnd()
-  if (tail) {
-    blocks.push({ type: 'text', content: tail })
-  }
-
+  if (tail) blocks.push({ type: 'text', content: tail })
   return blocks
 }
 
-// ─── Single image / carousel renderer ────────────────────────────────────────
+// ─── Smart image grid ─────────────────────────────────────────────────────────
 
-const IMG_RADIUS = '12px'
+const CELL_STYLE: React.CSSProperties = {
+  position: 'relative',
+  overflow: 'hidden',
+  borderRadius: 10,
+  cursor: 'zoom-in',
+  flexShrink: 0,
+}
 
-function ImageBlock({
+const IMG_FILL: React.CSSProperties = {
+  display: 'block',
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  userSelect: 'none',
+}
+
+function SmartImageGrid({
   items,
   onImageClick,
 }: {
-  items: { alt: string; src: string }[]
-  onImageClick: (src: string) => void
+  items: ImageItem[]
+  onImageClick: (images: ImageItem[], index: number) => void
 }) {
-  if (items.length === 1) {
+  const MAX = 4
+  const shown = items.slice(0, MAX)
+  const overflow = items.length - MAX
+  const half = Math.floor((GRID_W - GRID_GAP) / 2)
+
+  if (shown.length === 1) {
     return (
-      <div style={{ marginTop: 6, marginBottom: 2 }}>
-        <img
-          src={items[0].src}
-          alt={items[0].alt}
-          onClick={() => onImageClick(items[0].src)}
-          style={{
-            display: 'block',
-            maxWidth: '85%',
-            width: '100%',
-            borderRadius: IMG_RADIUS,
-            cursor: 'zoom-in',
-            objectFit: 'cover',
-            boxShadow: '0 4px 14px rgba(30,17,10,0.14)',
-          }}
-        />
+      <div
+        style={{ ...CELL_STYLE, width: GRID_W, height: 176, borderRadius: 12 }}
+        onClick={() => onImageClick(items, 0)}
+      >
+        <img src={shown[0].src} alt={shown[0].alt} style={IMG_FILL} loading="lazy" />
       </div>
     )
   }
 
-  // Carousel: first image fully visible, second ~1/3 visible
+  if (shown.length === 2) {
+    return (
+      <div style={{ display: 'flex', gap: GRID_GAP, width: GRID_W, height: 132 }}>
+        {shown.map((item, i) => (
+          <div key={i} style={{ ...CELL_STYLE, flex: 1 }} onClick={() => onImageClick(items, i)}>
+            <img src={item.src} alt={item.alt} style={IMG_FILL} loading="lazy" />
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (shown.length === 3) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: GRID_GAP, width: GRID_W }}>
+        <div style={{ ...CELL_STYLE, height: 148 }} onClick={() => onImageClick(items, 0)}>
+          <img src={shown[0].src} alt={shown[0].alt} style={IMG_FILL} loading="lazy" />
+        </div>
+        <div style={{ display: 'flex', gap: GRID_GAP, height: 108 }}>
+          {shown.slice(1).map((item, i) => (
+            <div
+              key={i}
+              style={{ ...CELL_STYLE, flex: 1 }}
+              onClick={() => onImageClick(items, i + 1)}
+            >
+              <img src={item.src} alt={item.alt} style={IMG_FILL} loading="lazy" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // 2×2 (4 shown, overflow overlay on last)
   return (
     <div
       style={{
-        marginTop: 6,
-        marginBottom: 2,
-        display: 'flex',
-        gap: 8,
-        overflowX: 'auto',
-        scrollSnapType: 'x mandatory',
-        WebkitOverflowScrolling: 'touch',
-        paddingBottom: 4,
-        // hide scrollbar
-        scrollbarWidth: 'none',
+        display: 'grid',
+        gridTemplateColumns: `${half}px ${half}px`,
+        gridTemplateRows: `${half}px ${half}px`,
+        gap: GRID_GAP,
+        width: GRID_W,
       }}
-      className="hide-scrollbar"
     >
-      {items.map((item, i) => (
-        <img
-          key={i}
-          src={item.src}
-          alt={item.alt}
-          onClick={() => onImageClick(item.src)}
-          style={{
-            flexShrink: 0,
-            minWidth: '65%',
-            maxWidth: '65%',
-            borderRadius: IMG_RADIUS,
-            cursor: 'zoom-in',
-            objectFit: 'cover',
-            scrollSnapAlign: 'start',
-            boxShadow: '0 4px 14px rgba(30,17,10,0.14)',
-          }}
-        />
-      ))}
+      {shown.map((item, i) => {
+        const isLast = i === MAX - 1 && overflow > 0
+        return (
+          <div key={i} style={CELL_STYLE} onClick={() => onImageClick(items, i)}>
+            <img src={item.src} alt={item.alt} style={IMG_FILL} loading="lazy" />
+            {isLast && (
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: 'rgba(0,0,0,0.54)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff',
+                  fontSize: 28,
+                  fontWeight: 700,
+                  borderRadius: 10,
+                }}
+              >
+                +{overflow}
+              </div>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }
 
 // ─── Lightbox ─────────────────────────────────────────────────────────────────
 
-function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
+function navBtnStyle(side: 'left' | 'right'): React.CSSProperties {
+  return {
+    background: 'rgba(255,255,255,0.1)',
+    border: 'none',
+    color: '#fff',
+    fontSize: 44,
+    lineHeight: 1,
+    cursor: 'pointer',
+    padding: '16px 12px',
+    flexShrink: 0,
+    borderRadius: side === 'left' ? '0 8px 8px 0' : '8px 0 0 8px',
+    userSelect: 'none',
+  } as React.CSSProperties
+}
+
+function Lightbox({
+  images,
+  initialIndex,
+  onClose,
+}: {
+  images: ImageItem[]
+  initialIndex: number
+  onClose: () => void
+}) {
+  const [index, setIndex] = useState(initialIndex)
+  const touchStartX = useRef<number | null>(null)
+
+  const prev = useCallback(
+    () => setIndex((i) => (i > 0 ? i - 1 : images.length - 1)),
+    [images.length],
+  )
+  const next = useCallback(
+    () => setIndex((i) => (i < images.length - 1 ? i + 1 : 0)),
+    [images.length],
+  )
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
+      if (e.key === 'ArrowLeft') prev()
+      if (e.key === 'ArrowRight') next()
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [onClose])
+  }, [onClose, prev, next])
+
+  // Ask parent iframe to go full screen
+  useEffect(() => {
+    try { window.parent.postMessage({ type: 'alfred-lightbox-open' }, '*') } catch (_) {}
+    return () => {
+      try { window.parent.postMessage({ type: 'alfred-lightbox-close' }, '*') } catch (_) {}
+    }
+  }, [])
+
+  const handleTouchStart = (e: TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+  }
+  const handleTouchEnd = (e: TouchEvent) => {
+    if (touchStartX.current === null) return
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    if (Math.abs(dx) > 40) dx < 0 ? next() : prev()
+    touchStartX.current = null
+  }
 
   return (
     <div
       onClick={onClose}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 9999,
-        background: 'rgba(0,0,0,0.88)',
+        zIndex: 99999,
+        background: 'rgba(0,0,0,0.93)',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 16,
       }}
     >
+      {/* Close */}
       <button
         onClick={onClose}
         aria-label="Chiudi"
         style={{
           position: 'absolute',
-          top: 16,
-          right: 20,
-          background: 'none',
+          top: 14,
+          right: 18,
+          background: 'rgba(255,255,255,0.12)',
           border: 'none',
           color: '#fff',
-          fontSize: 32,
+          fontSize: 26,
           lineHeight: 1,
           cursor: 'pointer',
-          fontWeight: 300,
+          zIndex: 2,
+          borderRadius: 8,
+          width: 40,
+          height: 40,
         }}
       >
         ×
       </button>
-      <img
-        src={src}
-        alt="Anteprima"
-        onClick={(e) => e.stopPropagation()}
+
+      {/* Counter */}
+      {images.length > 1 && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 18,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            color: 'rgba(255,255,255,0.7)',
+            fontSize: 13,
+            zIndex: 2,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {index + 1} / {images.length}
+        </div>
+      )}
+
+      {/* Image row with nav arrows */}
+      <div
         style={{
-          maxWidth: '100%',
-          maxHeight: '90vh',
-          borderRadius: 10,
-          boxShadow: '0 8px 40px rgba(0,0,0,0.6)',
-          objectFit: 'contain',
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          width: '100%',
+          paddingTop: 48,
+          paddingBottom: 8,
         }}
-      />
+      >
+        {images.length > 1 && (
+          <button onClick={(e) => { e.stopPropagation(); prev() }} style={navBtnStyle('left')}>
+            ‹
+          </button>
+        )}
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '0 6px',
+            overflow: 'hidden',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <img
+            key={index}
+            src={images[index].src}
+            alt={images[index].alt}
+            style={{
+              maxWidth: '100%',
+              maxHeight: '78vh',
+              borderRadius: 10,
+              objectFit: 'contain',
+              boxShadow: '0 8px 40px rgba(0,0,0,0.6)',
+              userSelect: 'none',
+              display: 'block',
+            }}
+          />
+        </div>
+        {images.length > 1 && (
+          <button onClick={(e) => { e.stopPropagation(); next() }} style={navBtnStyle('right')}>
+            ›
+          </button>
+        )}
+      </div>
+
+      {/* Dot indicators */}
+      {images.length > 1 && (
+        <div
+          style={{ display: 'flex', gap: 7, paddingBottom: 22, paddingTop: 6 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {images.map((_, i) => (
+            <div
+              key={i}
+              onClick={() => setIndex(i)}
+              style={{
+                width: i === index ? 22 : 8,
+                height: 8,
+                borderRadius: 4,
+                background: i === index ? '#fff' : 'rgba(255,255,255,0.32)',
+                transition: 'width 0.2s, background 0.2s',
+                cursor: 'pointer',
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -297,12 +471,11 @@ function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
 function getMessageText(message: ChatMessage): string {
   const partsText = Array.isArray(message.parts)
     ? message.parts
-        .filter((part) => part?.type === 'text' && typeof part?.text === 'string')
-        .map((part) => part.text as string)
+        .filter((p) => p?.type === 'text' && typeof p?.text === 'string')
+        .map((p) => p.text as string)
         .join(' ')
         .trim()
     : ''
-
   if (partsText) return partsText
   if (typeof message.content === 'string') return message.content.trim()
   return ''
@@ -311,9 +484,7 @@ function getMessageText(message: ChatMessage): string {
 function detectLanguageFromText(text: string): ConversationLang {
   const t = text.toLowerCase()
   if (!t.trim()) return 'en'
-
   const scores: Record<ConversationLang, number> = { it: 0, en: 0, fr: 0, de: 0, es: 0 }
-
   const patterns: Record<ConversationLang, RegExp> = {
     it: /\b(ciao|grazie|camera|camere|colazione|prenotazione|orario|per|con|senza)\b/gi,
     en: /\b(hello|thanks|room|rooms|breakfast|booking|time|with|without|please)\b/gi,
@@ -321,25 +492,54 @@ function detectLanguageFromText(text: string): ConversationLang {
     de: /\b(hallo|danke|zimmer|frühstück|buchung|uhrzeit|mit|ohne)\b/gi,
     es: /\b(hola|gracias|habitación|desayuno|reserva|horario|con|sin)\b/gi,
   }
-
   ;(Object.keys(patterns) as ConversationLang[]).forEach((lang) => {
     const matches = t.match(patterns[lang])
     scores[lang] = matches ? matches.length : 0
   })
-
   const ordered = (Object.entries(scores) as [ConversationLang, number][]).sort((a, b) => b[1] - a[1])
   if (ordered[0][1] === 0) return 'en'
   return ordered[0][0]
 }
 
+// ─── Bubble styles ────────────────────────────────────────────────────────────
+
+const BUBBLE_BASE: React.CSSProperties = {
+  maxWidth: '88%',
+  borderRadius: 16,
+  lineHeight: 1.45,
+  fontSize: 14,
+  whiteSpace: 'pre-wrap',
+  padding: '12px 14px',
+}
+
+const ALFRED_BUBBLE: React.CSSProperties = {
+  ...BUBBLE_BASE,
+  background: '#fff',
+  color: '#2f2317',
+  border: '1px solid #e1d2bf',
+  boxShadow: '0 8px 24px rgba(30,17,10,0.08)',
+}
+
+const USER_BUBBLE: React.CSSProperties = {
+  ...BUBBLE_BASE,
+  background: '#6c4a2f',
+  color: '#f5eee4',
+  border: 'none',
+  boxShadow: '0 8px 24px rgba(30,17,10,0.08)',
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
 export default function AlfredChatWidget() {
   const [input, setInput] = useState('')
-  const [avatarSrc, setAvatarSrc] = useState('/Alfred.webp')
-  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
+  const [avatarSrc, setAvatarSrc] = useState('/alfred.webp')
+  const [lightbox, setLightbox] = useState<LightboxState>(null)
   const endRef = useRef<HTMLDivElement>(null)
 
-  const openLightbox = useCallback((src: string) => setLightboxSrc(src), [])
-  const closeLightbox = useCallback(() => setLightboxSrc(null), [])
+  const openLightbox = useCallback((images: ImageItem[], index: number) => {
+    setLightbox({ images, index })
+  }, [])
+  const closeLightbox = useCallback(() => setLightbox(null), [])
 
   const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({ api: '/api/alfred' }),
@@ -348,14 +548,13 @@ export default function AlfredChatWidget() {
   const isLoading = status === 'submitted' || status === 'streaming'
 
   const loadingText = useMemo(() => {
-    const allMessages = messages as ChatMessage[]
-    for (let i = allMessages.length - 1; i >= 0; i -= 1) {
-      const message = allMessages[i]
-      if (message.role !== 'user' && message.role !== 'assistant') continue
-      const text = getMessageText(message)
+    const all = messages as ChatMessage[]
+    for (let i = all.length - 1; i >= 0; i--) {
+      const m = all[i]
+      if (m.role !== 'user' && m.role !== 'assistant') continue
+      const text = getMessageText(m)
       if (!text) continue
-      const lang = detectLanguageFromText(text)
-      return LOADING_TEXT[lang] ?? LOADING_TEXT.en
+      return LOADING_TEXT[detectLanguageFromText(text)] ?? LOADING_TEXT.en
     }
     return LOADING_TEXT.en
   }, [messages])
@@ -364,18 +563,12 @@ export default function AlfredChatWidget() {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading])
 
-  const welcomeText = useMemo(
-    () =>
-      'Benvenuto. Sono Alfred, il concierge dell’Hotel Langhe & Monferrato. Posso aiutarti con camere, servizi e consigli sul territorio, con piacere e discrezione.',
-    [],
-  )
-
-  const onSend = () => {
+  const onSend = useCallback(() => {
     const text = input.trim()
     if (!text || isLoading) return
     sendMessage({ text })
     setInput('')
-  }
+  }, [input, isLoading, sendMessage])
 
   return (
     <main
@@ -388,6 +581,7 @@ export default function AlfredChatWidget() {
         color: '#2f2317',
       }}
     >
+      {/* ── Header ── */}
       <header
         style={{
           padding: '14px 16px',
@@ -397,6 +591,7 @@ export default function AlfredChatWidget() {
           display: 'flex',
           alignItems: 'center',
           gap: 10,
+          flexShrink: 0,
         }}
       >
         <img
@@ -414,11 +609,16 @@ export default function AlfredChatWidget() {
           }}
         />
         <div>
-          <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, lineHeight: 1.05 }}>Alfred</div>
-          <div style={{ fontSize: 12, opacity: 0.78 }}>Concierge virtuale • Hotel Langhe & Monferrato</div>
+          <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, lineHeight: 1.05 }}>
+            Alfred
+          </div>
+          <div style={{ fontSize: 12, opacity: 0.78 }}>
+            Concierge virtuale • Hotel Langhe &amp; Monferrato
+          </div>
         </div>
       </header>
 
+      {/* ── Messages ── */}
       <section
         style={{
           flex: 1,
@@ -427,24 +627,13 @@ export default function AlfredChatWidget() {
           padding: '16px 14px 10px',
           display: 'flex',
           flexDirection: 'column',
-          gap: 10,
+          gap: 6,
         }}
       >
         {messages.length === 0 && (
-          <article
-            style={{
-              alignSelf: 'flex-start',
-              maxWidth: '88%',
-              background: '#fff',
-              border: '1px solid #e1d2bf',
-              boxShadow: '0 8px 24px rgba(30,17,10,0.08)',
-              borderRadius: 16,
-              padding: '12px 14px',
-              lineHeight: 1.45,
-              fontSize: 14,
-            }}
-          >
-            {welcomeText}
+          <article style={ALFRED_BUBBLE}>
+            Benvenuto. Sono Alfred, il concierge dell&apos;Hotel Langhe &amp; Monferrato. Posso
+            aiutarti con camere, servizi e consigli sul territorio, con piacere e discrezione.
           </article>
         )}
 
@@ -452,83 +641,67 @@ export default function AlfredChatWidget() {
           if (message.role !== 'assistant' && message.role !== 'user') return null
           const text = getMessageText(message)
           if (!text) return null
-
           const isUser = message.role === 'user'
-          const blocks = isUser ? null : parseMessageBlocks(text)
+
+          if (isUser) {
+            return (
+              <article key={message.id} style={{ alignSelf: 'flex-end', ...USER_BUBBLE }}>
+                {renderRichText(text)}
+              </article>
+            )
+          }
+
+          const blocks = parseMessageBlocks(text)
 
           return (
-            <article
+            <div
               key={message.id}
               style={{
-                alignSelf: isUser ? 'flex-end' : 'flex-start',
-                maxWidth: '88%',
-                background: isUser ? '#6c4a2f' : '#fff',
-                color: isUser ? '#f5eee4' : '#2f2317',
-                border: isUser ? 'none' : '1px solid #e1d2bf',
-                boxShadow: '0 8px 24px rgba(30,17,10,0.08)',
-                borderRadius: 16,
-                padding: '12px 14px',
-                lineHeight: 1.45,
-                fontSize: 14,
-                whiteSpace: 'pre-wrap',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+                alignItems: 'flex-start',
               }}
             >
-              {isUser || !blocks
-                ? renderRichText(text)
-                : blocks.map((block, bi) =>
-                    block.type === 'text' ? (
-                      <div key={bi}>{renderRichText(block.content)}</div>
-                    ) : (
-                      <ImageBlock key={bi} items={block.items} onImageClick={openLightbox} />
-                    ),
-                  )}
-            </article>
+              {blocks.map((block, bi) =>
+                block.type === 'text' ? (
+                  <article key={bi} style={ALFRED_BUBBLE}>
+                    {renderRichText(block.content)}
+                  </article>
+                ) : (
+                  <div key={bi} style={{ alignSelf: 'flex-start', paddingLeft: 2 }}>
+                    <SmartImageGrid items={block.items} onImageClick={openLightbox} />
+                  </div>
+                ),
+              )}
+            </div>
           )
         })}
 
         {isLoading && (
-          <div
-            style={{
-              alignSelf: 'flex-start',
-              background: '#fff',
-              border: '1px solid #e1d2bf',
-              borderRadius: 16,
-              padding: '9px 12px',
-              boxShadow: '0 8px 24px rgba(30,17,10,0.08)',
-              fontSize: 13,
-              opacity: 0.85,
-            }}
-          >
+          <article style={{ ...ALFRED_BUBBLE, padding: '9px 12px', opacity: 0.82, fontSize: 13 }}>
             {loadingText}
-          </div>
+          </article>
         )}
 
         {error && (
-          <div
-            style={{
-              alignSelf: 'flex-start',
-              background: '#fff',
-              border: '1px solid #e1d2bf',
-              borderRadius: 16,
-              padding: '10px 12px',
-              boxShadow: '0 8px 24px rgba(30,17,10,0.08)',
-              fontSize: 13,
-              lineHeight: 1.4,
-            }}
-          >
-            In questo momento non riesco a completare la risposta. Ti invito a riprovare tra qualche istante.
-          </div>
+          <article style={{ ...ALFRED_BUBBLE, fontSize: 13, lineHeight: 1.4 }}>
+            In questo momento non riesco a completare la risposta. Ti invito a riprovare tra qualche
+            istante.
+          </article>
         )}
 
         <div ref={endRef} />
       </section>
 
+      {/* ── Footer ── */}
       <footer
         style={{
           borderTop: '1px solid #e1d2bf',
           background: 'rgba(247,241,232,0.94)',
           backdropFilter: 'blur(6px)',
           padding: '10px 12px calc(10px + env(safe-area-inset-bottom, 0px))',
+          flexShrink: 0,
         }}
       >
         <div
@@ -583,6 +756,7 @@ export default function AlfredChatWidget() {
               cursor: isLoading || !input.trim() ? 'not-allowed' : 'pointer',
               boxShadow: '0 6px 14px rgba(30,17,10,0.18)',
               fontSize: 18,
+              flexShrink: 0,
             }}
           >
             ➤
@@ -590,7 +764,9 @@ export default function AlfredChatWidget() {
         </div>
       </footer>
 
-      {lightboxSrc && <Lightbox src={lightboxSrc} onClose={closeLightbox} />}
+      {lightbox && (
+        <Lightbox images={lightbox.images} initialIndex={lightbox.index} onClose={closeLightbox} />
+      )}
     </main>
   )
 }

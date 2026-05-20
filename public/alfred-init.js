@@ -307,4 +307,40 @@
       }
     }, config.welcomeDelayMs)
   }
+
+  // ── Lightbox full-screen handler ──────────────────────────────────────────
+  // When Alfred opens a lightbox it sends postMessage to expand the iframe.
+  const PANEL_ORIG = {
+    right: panel.style.right,
+    bottom: panel.style.bottom,
+    width: panel.style.width,
+    height: panel.style.height,
+    borderRadius: panel.style.borderRadius,
+    zIndex: panel.style.zIndex,
+  }
+
+  window.addEventListener('message', (event) => {
+    if (!event.data || typeof event.data.type !== 'string') return
+    if (event.data.type === 'alfred-lightbox-open') {
+      panel.style.right = '0'
+      panel.style.bottom = '0'
+      panel.style.left = '0'
+      panel.style.top = '0'
+      panel.style.width = '100vw'
+      panel.style.height = '100dvh'
+      panel.style.borderRadius = '0'
+      panel.style.zIndex = String(Number(config.zIndex) + 100)
+      panel.style.transition = 'none'
+    } else if (event.data.type === 'alfred-lightbox-close') {
+      panel.style.right = ''
+      panel.style.bottom = ''
+      panel.style.left = ''
+      panel.style.top = ''
+      panel.style.width = ''
+      panel.style.height = ''
+      panel.style.borderRadius = ''
+      panel.style.zIndex = ''
+      panel.style.transition = ''
+    }
+  })
 })()
