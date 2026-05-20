@@ -19,6 +19,7 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
 ### 💰 Listino prezzi (per notte)
 > I prezzi includono sempre la ricca colazione a buffet.
 > È possibile richiedere tariffa senza colazione con riduzione.
+> **Tassa di soggiorno**: **2 € al giorno per persona**, sempre **a parte** ed **esclusa** dalle tariffe indicate.
 
 | Tipologia camera | Con colazione | Senza colazione | Note predisposizione letti |
 |---|---:|---:|---|
