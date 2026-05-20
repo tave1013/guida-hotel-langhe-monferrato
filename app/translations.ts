@@ -91,31 +91,31 @@ export const T = {
     it: {
       title: 'Benvenuto! 🤌',
       body: 'Siamo felici di ospitarvi nel cuore delle Langhe e del Monferrato. Questa guida contiene tutto ciò che vi serve per un soggiorno indimenticabile tra vigneti, castelli e sapori autentici del Piemonte.',
-      description: 'Benvenuti nel cuore delle Langhe',
+      description: 'Nel cuore di Langhe e Monferrato, a circa 15 km da Alba, Asti e Canelli, nel verde di Costigliole d\'Asti.',
       stars: 4,
     },
     en: {
       title: 'Welcome! 🤌',
       body: "We're delighted to host you in the heart of Langhe and Monferrato. This guide contains everything you need for an unforgettable stay among vineyards, castles and authentic Piedmontese flavours.",
-      description: 'Welcome to the heart of the Langhe',
+      description: 'In the heart of Langhe and Monferrato, about 15 km from Alba, Asti and Canelli, in the green hills of Costigliole d\'Asti.',
       stars: 4,
     },
     fr: {
       title: 'Bienvenue ! 🤌',
       body: 'Nous sommes ravis de vous accueillir au cœur des Langhe et du Monferrato. Ce guide contient tout ce dont vous avez besoin pour un séjour inoubliable entre vignobles, châteaux et saveurs authentiques du Piémont.',
-      description: 'Bienvenue au cœur des Langhe',
+      description: 'Au cœur des Langhe et du Monferrato, à environ 15 km d\'Alba, Asti et Canelli, dans la verdure de Costigliole d\'Asti.',
       stars: 4,
     },
     de: {
       title: 'Willkommen! 🤌',
       body: 'Wir freuen uns, Sie im Herzen der Langhe und des Monferrato zu empfangen. Dieser Leitfaden enthält alles, was Sie für einen unvergesslichen Aufenthalt zwischen Weinbergen, Schlössern und authentischen piemontesischen Aromen benötigen.',
-      description: 'Willkommen im Herzen der Langhe',
+      description: 'Im Herzen der Langhe und des Monferrato, ca. 15 km von Alba, Asti und Canelli entfernt, im Grünen von Costigliole d\'Asti.',
       stars: 4,
     },
     es: {
       title: '¡Bienvenido! 🤌',
       body: 'Nos alegra recibirte en el corazón de Langhe y Monferrato. Esta guía contiene todo lo que necesitas para una estancia inolvidable entre viñedos, castillos y sabores auténticos del Piamonte.',
-      description: 'Bienvenido al corazón de las Langhe',
+      description: 'En el corazón de Langhe y Monferrato, a unos 15 km de Alba, Asti y Canelli, en el verde de Costigliole d\'Asti.',
       stars: 4,
     },
   },
@@ -125,6 +125,11 @@ export const T = {
     it: {
       exploreTitle: 'Esplora la guida',
       exploreSubtitle: 'Tutto quello che ti serve in un tap',
+      features: [
+        { icon: '🍽️', title: 'Cucina del Territorio', desc: 'Possibilità di mangiare prodotti locali del territorio, con proposte tipiche ideali anche per eventi e occasioni speciali.' },
+        { icon: '🏊', title: 'Piscina', desc: 'Piscina estiva all\'aperto immersa nella natura, perfetta per rilassarsi e vivere un momento di relax durante il soggiorno.' },
+        { icon: '🏛️', title: 'Sale Meeting', desc: 'Spazi attrezzati per eventi, riunioni e occasioni speciali direttamente in struttura. Contattaci per organizzare ogni dettaglio.' },
+      ],
       card1Title: 'Il tuo Soggiorno',
       card1Sub: 'Check-in, regole, parcheggio, WiFi',
       card2Title: 'Esperienze nelle Langhe',
@@ -137,6 +142,11 @@ export const T = {
     en: {
       exploreTitle: 'Explore the guide',
       exploreSubtitle: 'Everything you need in one tap',
+      features: [
+        { icon: '🍽️', title: 'Local Cuisine', desc: 'Opportunity to enjoy local products and typical dishes, ideal also for events and special occasions.' },
+        { icon: '🏊', title: 'Swimming Pool', desc: 'Outdoor summer pool surrounded by nature, perfect for relaxing during your stay.' },
+        { icon: '🏛️', title: 'Meeting Rooms', desc: 'Fully equipped spaces for events, meetings and special occasions on-site. Contact us to organize every detail.' },
+      ],
       card1Title: 'Your Stay',
       card1Sub: 'Check-in, rules, parking, WiFi',
       card2Title: 'Experiences in the Langhe',
@@ -149,6 +159,11 @@ export const T = {
     fr: {
       exploreTitle: 'Explorer le guide',
       exploreSubtitle: 'Tout ce dont vous avez besoin en un clic',
+      features: [
+        { icon: '🍽️', title: 'Cuisine du Terroir', desc: 'Possibilité de déguster des produits locaux et des plats typiques, idéaux aussi pour les événements et occasions spéciales.' },
+        { icon: '🏊', title: 'Piscine', desc: 'Piscine extérieure d\'été entourée de nature, parfaite pour se détendre et profiter d\'un moment de relaxation.' },
+        { icon: '🏛️', title: 'Salles de Réunion', desc: 'Espaces équipés pour événements, réunions et occasions spéciales directement sur place. Contactez-nous pour organiser chaque détail.' },
+      ],
       card1Title: 'Votre Séjour',
       card1Sub: 'Check-in, règles, parking, WiFi',
       card2Title: 'Expériences dans les Langhe',
@@ -161,6 +176,11 @@ export const T = {
     de: {
       exploreTitle: 'Den Leitfaden erkunden',
       exploreSubtitle: 'Alles, was Sie brauchen, auf einen Tap',
+      features: [
+        { icon: '🍽️', title: 'Regionale Küche', desc: 'Möglichkeit, lokale Produkte und typische Gerichte zu genießen, auch ideal für Veranstaltungen und besondere Anlässe.' },
+        { icon: '🏊', title: 'Schwimmbad', desc: 'Outdoor-Sommerpool inmitten der Natur, ideal zum Entspannen und Erholen während Ihres Aufenthalts.' },
+        { icon: '🏛️', title: 'Tagungsräume', desc: 'Voll ausgestattete Räume für Veranstaltungen, Meetings und besondere Anlässe direkt im Haus. Kontaktieren Sie uns.' },
+      ],
       card1Title: 'Ihr Aufenthalt',
       card1Sub: 'Check-in, Regeln, Parkplatz, WLAN',
       card2Title: 'Erlebnisse in den Langhe',
@@ -173,6 +193,11 @@ export const T = {
     es: {
       exploreTitle: 'Explora la guía',
       exploreSubtitle: 'Todo lo que necesitas en un toque',
+      features: [
+        { icon: '🍽️', title: 'Cocina del Territorio', desc: 'Posibilidad de disfrutar productos locales y platos típicos, ideales también para eventos y ocasiones especiales.' },
+        { icon: '🏊', title: 'Piscina', desc: 'Piscina exterior de verano rodeada de naturaleza, perfecta para relajarse durante la estancia.' },
+        { icon: '🏛️', title: 'Salas de Reuniones', desc: 'Espacios equipados para eventos, reuniones y ocasiones especiales directamente en el establecimiento. Contáctenos.' },
+      ],
       card1Title: 'Tu Estancia',
       card1Sub: 'Check-in, normas, aparcamiento, WiFi',
       card2Title: 'Experiencias en Langhe',

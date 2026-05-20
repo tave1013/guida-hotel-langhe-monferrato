@@ -717,7 +717,7 @@ function WelcomeCard({ lang }: { lang: Lang }) {
           </div>
           <span style={{ color: '#FFFFFF', fontSize: 13, fontWeight: 700 }}>{headerTxt.hotelName}</span>
         </div>
-        <p style={{ color: '#FFFFFF', fontSize: 12, opacity: 0.9, margin: 0 }}>
+        <p style={{ color: '#FFFFFF', fontSize: 14, opacity: 0.95, margin: 0, lineHeight: 1.55 }}>
           {(txt as any).description}
         </p>
       </div>
@@ -768,6 +768,37 @@ function HomeTab({ setTab, lang }: { setTab: (tab: string) => void; lang: Lang }
     <div>
       <InfoBar lang={lang} />
       <WelcomeCard lang={lang} />
+
+      {/* Feature highlights */}
+      <div style={{ padding: '0 16px 4px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {((txt as any).features as { icon: string; title: string; desc: string }[]).map((f, i) => (
+          <div key={i} style={{
+            background: C.creamWhite,
+            border: `1px solid ${C.creamDark}`,
+            borderRadius: 16,
+            padding: '16px',
+            boxShadow: '0 2px 8px rgba(30,17,10,0.06)',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 14,
+          }}>
+            <div style={{
+              fontSize: 28,
+              lineHeight: 1,
+              flexShrink: 0,
+              width: 44, height: 44,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: `${C.brownMid}15`,
+              borderRadius: 12,
+            }}>{f.icon}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 17, fontWeight: 700, color: C.brownMid, marginBottom: 5 }}>{f.title}</div>
+              <div style={{ fontSize: 14, color: C.textMid, lineHeight: 1.55 }}>{f.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div style={{ padding: '4px 16px 0' }}>
         <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, color: C.brownMid, marginBottom: 4 }}>
           {txt.exploreTitle}
