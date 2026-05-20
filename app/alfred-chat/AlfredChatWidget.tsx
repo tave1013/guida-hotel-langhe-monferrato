@@ -673,6 +673,25 @@ export default function AlfredChatWidget() {
     return 'Controlla il lucchetto vicino all\'indirizzo del sito e consenti l\'accesso al microfono, poi riprova.'
   }, [])
 
+  const micRevokeText = useMemo(() => {
+    if (typeof navigator === 'undefined') return 'Puoi revocare il permesso in qualsiasi momento dalle impostazioni del browser.'
+    const ua = navigator.userAgent
+    const isIOS = /iPhone|iPad|iPod/i.test(ua)
+    const isAndroid = /Android/i.test(ua)
+    const isWindows = /Windows/i.test(ua)
+
+    if (isIOS) {
+      return 'Puoi rimuovere il permesso in qualsiasi momento da Impostazioni > Safari > Microfono.'
+    }
+    if (isAndroid) {
+      return 'Puoi rimuovere il permesso da Impostazioni app > Chrome > Autorizzazioni > Microfono.'
+    }
+    if (isWindows) {
+      return 'Puoi revocare il permesso dal lucchetto del sito nel browser o da Impostazioni Privacy di Windows > Microfono.'
+    }
+    return 'Puoi revocare il permesso dal lucchetto del sito o dalle impostazioni privacy del browser/sistema.'
+  }, [])
+
   const speechRecognitionLang = useMemo(() => {
     const all = messages as ChatMessage[]
     const contextText = input.trim() || getLastUserText(all)
@@ -790,7 +809,7 @@ export default function AlfredChatWidget() {
     }
   }, [])
 
-  const startListening = useCallback(async () => {
+  const startListening = useCallback(async (skipPermissionCheck = false) => {
     setSpeechNotice('')
 
     if (!recognitionSupported) {
@@ -799,7 +818,7 @@ export default function AlfredChatWidget() {
       return
     }
 
-    if (micPermission !== 'granted') {
+    if (!skipPermissionCheck && micPermission !== 'granted') {
       const allowed = await requestMicrophonePermission()
       if (!allowed) return
     }
@@ -1191,13 +1210,16 @@ export default function AlfredChatWidget() {
             <div style={{ marginTop: 4, fontSize: 11, color: '#6b4d35', lineHeight: 1.35 }}>
               Privacy: l'audio viene usato solo per la trascrizione nel browser e non viene salvato nella chat.
             </div>
+            <div style={{ marginTop: 4, fontSize: 11, color: '#6b4d35', lineHeight: 1.35 }}>
+              {micRevokeText}
+            </div>
             <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
               <button
                 type="button"
                 onClick={async () => {
                   const ok = await requestMicrophonePermission()
                   if (ok) {
-                    startListening()
+                    startListening(true)
                   }
                 }}
                 style={{
