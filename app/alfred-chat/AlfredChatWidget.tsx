@@ -41,6 +41,8 @@ type SpeechRecognitionLike = {
   stop: () => void
 }
 
+type MicPermissionState = 'unknown' | 'granted' | 'denied'
+
 declare global {
   interface Window {
     SpeechRecognition?: new () => SpeechRecognitionLike
@@ -636,6 +638,8 @@ export default function AlfredChatWidget() {
   const [lightbox, setLightbox] = useState<LightboxState>(null)
   const [isListening, setIsListening] = useState(false)
   const [speechNotice, setSpeechNotice] = useState('')
+  const [showSpeechHelp, setShowSpeechHelp] = useState(false)
+  const [micPermission, setMicPermission] = useState<MicPermissionState>('unknown')
   const endRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
   const speechBaseInputRef = useRef('')
@@ -653,6 +657,21 @@ export default function AlfredChatWidget() {
   const isLoading = status === 'submitted' || status === 'streaming'
   const recognitionSupported = typeof window !== 'undefined'
     && (!!window.SpeechRecognition || !!window.webkitSpeechRecognition)
+
+  const micHelpText = useMemo(() => {
+    if (typeof navigator === 'undefined') return 'Abilita il microfono dalle impostazioni del browser.'
+    const ua = navigator.userAgent
+    const isIOS = /iPhone|iPad|iPod/i.test(ua)
+    const isAndroid = /Android/i.test(ua)
+
+    if (isIOS) {
+      return 'Su iPhone/iPad: apri Impostazioni > Safari > Microfono e imposta su "Consenti", poi riapri la chat.'
+    }
+    if (isAndroid) {
+      return 'Su Android: controlla che Chrome abbia il permesso Microfono (Impostazioni app > Autorizzazioni), poi riprova.'
+    }
+    return 'Controlla il lucchetto vicino all\'indirizzo del sito e consenti l\'accesso al microfono, poi riprova.'
+  }, [])
 
   const speechRecognitionLang = useMemo(() => {
     const all = messages as ChatMessage[]
@@ -687,6 +706,33 @@ export default function AlfredChatWidget() {
   }, [])
 
   useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.permissions?.query) return
+    let mounted = true
+
+    navigator.permissions
+      .query({ name: 'microphone' as PermissionName })
+      .then((status) => {
+        if (!mounted) return
+        if (status.state === 'granted') setMicPermission('granted')
+        else if (status.state === 'denied') setMicPermission('denied')
+        else setMicPermission('unknown')
+
+        status.onchange = () => {
+          if (status.state === 'granted') setMicPermission('granted')
+          else if (status.state === 'denied') setMicPermission('denied')
+          else setMicPermission('unknown')
+        }
+      })
+      .catch(() => {
+        // Safari may not support permissions query for microphone
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  useEffect(() => {
     if (!initialMessages.length) return
     setMessages(initialMessages as never)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -716,17 +762,52 @@ export default function AlfredChatWidget() {
     setIsListening(false)
   }, [])
 
-  const startListening = useCallback(() => {
+  const requestMicrophonePermission = useCallback(async () => {
+    if (typeof window === 'undefined' || !window.isSecureContext) {
+      setSpeechNotice('Il microfono richiede una connessione sicura (HTTPS).')
+      setShowSpeechHelp(true)
+      return false
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setSpeechNotice('Permessi microfono non disponibili su questo browser.')
+      setShowSpeechHelp(true)
+      return false
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      stream.getTracks().forEach((track) => track.stop())
+      setMicPermission('granted')
+      setSpeechNotice('Microfono attivato. Puoi iniziare a dettare.')
+      setShowSpeechHelp(false)
+      return true
+    } catch {
+      setMicPermission('denied')
+      setSpeechNotice('Microfono non autorizzato. Per usare la dettatura devi consentire il permesso.')
+      setShowSpeechHelp(true)
+      return false
+    }
+  }, [])
+
+  const startListening = useCallback(async () => {
     setSpeechNotice('')
 
     if (!recognitionSupported) {
       setSpeechNotice('Dettatura vocale non disponibile su questo browser.')
+      setShowSpeechHelp(true)
       return
+    }
+
+    if (micPermission !== 'granted') {
+      const allowed = await requestMicrophonePermission()
+      if (!allowed) return
     }
 
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SR) {
       setSpeechNotice('Dettatura vocale non disponibile su questo browser.')
+      setShowSpeechHelp(true)
       return
     }
 
@@ -766,11 +847,14 @@ export default function AlfredChatWidget() {
       setIsListening(false)
       const err = event?.error ?? ''
       if (err === 'not-allowed' || err === 'service-not-allowed') {
+        setMicPermission('denied')
         setSpeechNotice('Microfono non autorizzato. Abilita il permesso e riprova.')
+        setShowSpeechHelp(true)
         return
       }
       if (err === 'audio-capture') {
         setSpeechNotice('Microfono non rilevato. Verifica il dispositivo audio.')
+        setShowSpeechHelp(true)
         return
       }
       if (err === 'no-speech') {
@@ -788,11 +872,13 @@ export default function AlfredChatWidget() {
     try {
       recognition.start()
       setIsListening(true)
+      setShowSpeechHelp(false)
     } catch {
       setIsListening(false)
       setSpeechNotice('Impossibile avviare la dettatura in questo momento.')
+      setShowSpeechHelp(true)
     }
-  }, [input, recognitionSupported, speechRecognitionLang])
+  }, [input, micPermission, recognitionSupported, requestMicrophonePermission, speechRecognitionLang])
 
   const toggleListening = useCallback(() => {
     if (isListening) {
@@ -967,7 +1053,7 @@ export default function AlfredChatWidget() {
           <button
             type="button"
             onClick={toggleListening}
-            disabled={isLoading || !recognitionSupported}
+            disabled={isLoading}
             aria-label={isListening ? 'Interrompi dettatura vocale' : 'Avvia dettatura vocale'}
             title={isListening ? 'Interrompi dettatura' : 'Detta il messaggio'}
             style={{
@@ -977,7 +1063,7 @@ export default function AlfredChatWidget() {
               width: 40,
               height: 40,
               borderRadius: 12,
-              cursor: isLoading || !recognitionSupported ? 'not-allowed' : 'pointer',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
               boxShadow: isListening
                 ? '0 0 0 1px rgba(128,0,32,0.18), 0 6px 14px rgba(30,17,10,0.12)'
                 : '0 6px 14px rgba(30,17,10,0.1)',
@@ -1084,6 +1170,64 @@ export default function AlfredChatWidget() {
             }}
           >
             {speechNotice}
+          </div>
+        )}
+        {showSpeechHelp && (
+          <div
+            style={{
+              marginTop: 8,
+              border: '1px solid #e1d2bf',
+              borderRadius: 12,
+              background: '#fff9f3',
+              padding: '9px 10px',
+            }}
+          >
+            <div style={{ fontSize: 12, color: '#4a3422', lineHeight: 1.4 }}>
+              Per attivare la dettatura: tocca "Attiva microfono" e consenti il permesso quando il browser lo richiede.
+            </div>
+            <div style={{ marginTop: 4, fontSize: 11, color: '#6b4d35', lineHeight: 1.35 }}>
+              {micHelpText}
+            </div>
+            <div style={{ marginTop: 4, fontSize: 11, color: '#6b4d35', lineHeight: 1.35 }}>
+              Privacy: l'audio viene usato solo per la trascrizione nel browser e non viene salvato nella chat.
+            </div>
+            <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+              <button
+                type="button"
+                onClick={async () => {
+                  const ok = await requestMicrophonePermission()
+                  if (ok) {
+                    startListening()
+                  }
+                }}
+                style={{
+                  border: 'none',
+                  borderRadius: 9,
+                  background: '#6c4a2f',
+                  color: '#fff',
+                  fontSize: 12,
+                  padding: '6px 10px',
+                  cursor: 'pointer',
+                }}
+              >
+                Attiva microfono
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowSpeechHelp(false)}
+                style={{
+                  border: '1px solid #d6c1a8',
+                  borderRadius: 9,
+                  background: '#fff',
+                  color: '#5b402c',
+                  fontSize: 12,
+                  padding: '6px 10px',
+                  cursor: 'pointer',
+                }}
+              >
+                Chiudi
+              </button>
+            </div>
           </div>
         )}
       </footer>
