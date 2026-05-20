@@ -388,53 +388,53 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
 Base path pubblico: `/foto/...`
 
 #### Camere matrimoniali (usare anche per camera singola)
-- `/foto/Camera%20matrimoniale.webp`
-- `/foto/Camera%20matrimoniale%20%282%29.webp`
-- `/foto/Camera%20matrimoniale%203.webp`
+- `/foto/camera-matrimoniale.webp`
+- `/foto/camera-matrimoniale-2.webp`
+- `/foto/camera-matrimoniale-3.webp`
 
 #### Camere doppie
-- `/foto/Camera%20doppia.webp`
-- `/foto/Camera%20doppia%202.webp`
+- `/foto/camera-doppia.webp`
+- `/foto/camera-doppia-2.webp`
 
 #### Camere triple
-- `/foto/Camera%20tripla%20.webp`
-- `/foto/camera%20tripla%202.webp`
+- `/foto/camera-tripla.webp`
+- `/foto/camera-tripla-2.webp`
 
 #### Camere quadruple
-- `/foto/Camera%20Quadrupla.webp`
-- `/foto/Camera%20Quadrupla%202.webp`
-- `/foto/Camera%20Quadrupla%203.webp`
-- `/foto/camera%20quadrupla%204.webp`
-- `/foto/Camera%20quadrupla%205.webp`
+- `/foto/camera-quadrupla.webp`
+- `/foto/camera-quadrupla-2.webp`
+- `/foto/camera-quadrupla-3.webp`
+- `/foto/camera-quadrupla-4.webp`
+- `/foto/camera-quadrupla-5.webp`
 
 #### Bagni (mostrare di norma una sola foto per risposta)
-- `/foto/Bagno%201.webp`
-- `/foto/Bagno%20classico%20con%20doccia.webp`
-- `/foto/Bagno%20con%20vasca.webp`
+- `/foto/bagno-1.webp`
+- `/foto/bagno-classico-con-doccia.webp`
+- `/foto/bagno-con-vasca.webp`
 
 #### Reception
-- `/foto/Reception.webp`
-- `/foto/Reception%202.webp`
-- `/foto/Reception%203.webp`
-- `/foto/Reception%204.webp`
+- `/foto/reception.webp`
+- `/foto/reception-2.webp`
+- `/foto/reception-3.webp`
+- `/foto/reception-4.webp`
 
 #### Colazione
-- `/foto/Sala%20colazioni.webp`
-- `/foto/Sala%20colazioni%202.webp` (usare raramente, solo se richiesto)
+- `/foto/sala-colazioni.webp`
+- `/foto/sala-colazioni-2.webp` (usare raramente, solo se richiesto)
 
 #### Struttura / Hotel
-- `/foto/Hotel%201.webp`
-- `/foto/hotel%202.webp`
-- `/foto/hotel%203.webp`
+- `/foto/hotel-1.webp`
+- `/foto/hotel-2.webp`
+- `/foto/hotel-3.webp`
 
 #### Dettagli camera/atmosfera camera
 - `/foto/dettagli.webp`
-- `/foto/Terrazzo%202.webp`
-- `/foto/Servizio%20da%20the.webp`
+- `/foto/terrazzo-2.webp`
+- `/foto/servizio-da-the.webp`
 
 #### Esperienze cantine
-- `/foto/esperienza%20cantine%20sotterranee.webp`
-- `/foto/cantine-soto-terra.webp`
+- `/foto/esperienza-cantine-sotterranee.webp`
+- `/foto/cantine-sotto-terra.webp`
 
 ### 6.2 Regole tassative di utilizzo immagini
 
