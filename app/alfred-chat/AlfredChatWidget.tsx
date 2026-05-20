@@ -48,8 +48,19 @@ const TOKEN_REGEX =
   /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|((?:https?:\/\/|www\.)[^\s<]+)|([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})|(\+?\d[\d\s()./-]{7,}\d)/gi
 const BOLD_REGEX = /\*\*(.+?)\*\*/g
 
-// Matches both absolute (https://...) and relative (/foto/...) image URLs
-const IMAGE_MD_REGEX = /!\[([^\]]*)\]\(((?:https?:\/\/|\/)[^\s)]+)\)/g
+// Matches absolute image URLs only (Alfred now always sends absolute URLs)
+const IMAGE_MD_REGEX = /!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g
+
+// Strips any partial/incomplete image markdown syntax that leaks during streaming
+// e.g. "![Camera" or "![Camera](https://...partial" etc.
+function cleanStreamingArtifacts(text: string): string {
+  // Remove any incomplete image markdown (started but not closed)
+  return text
+    .replace(/!\[[^\]]*$/, '')                          // ![...  (open bracket, no close)
+    .replace(/!\[[^\]]*\]\([^)]*$/, '')                 // ![...]( url not closed
+    .replace(/!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/g, '') // fully matched images (already in blocks)
+    .trimEnd()
+}
 
 const GRID_W = 244
 const GRID_GAP = 3
@@ -137,19 +148,22 @@ function parseMessageBlocks(text: string): MessageBlock[] {
   let m: RegExpExecArray | null
   while ((m = IMAGE_MD_REGEX.exec(text)) !== null) {
     const before = text.slice(lastIndex, m.index).replace(/^\n+/, '').trimEnd()
-    if (before) {
+    const cleanBefore = cleanStreamingArtifacts(before)
+    if (cleanBefore) {
       if (pendingImages.length) {
         blocks.push({ type: 'images', items: pendingImages })
         pendingImages = []
       }
-      blocks.push({ type: 'text', content: before })
+      blocks.push({ type: 'text', content: cleanBefore })
     }
     pendingImages.push({ alt: m[1], src: m[2] })
     lastIndex = m.index + m[0].length
   }
   if (pendingImages.length) blocks.push({ type: 'images', items: pendingImages })
   const tail = text.slice(lastIndex).replace(/^\n+/, '').trimEnd()
-  if (tail) blocks.push({ type: 'text', content: tail })
+  // Strip any partial/leaked image markdown from the final text tail
+  const cleanTail = cleanStreamingArtifacts(tail)
+  if (cleanTail) blocks.push({ type: 'text', content: cleanTail })
   return blocks
 }
 

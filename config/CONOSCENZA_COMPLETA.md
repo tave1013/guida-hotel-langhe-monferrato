@@ -385,56 +385,58 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
 
 ### 6.1 Archivio foto ufficiale (URL da usare)
 
-Base path pubblico: `/foto/...`
+Base URL assoluto: `https://guida-hotel-langhe-monferrato.vercel.app/foto/`
+
+**IMPORTANTE**: usa sempre l'URL completo e assoluto qui sotto — MAI percorsi relativi.
 
 #### Camere matrimoniali (usare anche per camera singola)
-- `/foto/camera-matrimoniale.webp`
-- `/foto/camera-matrimoniale-2.webp`
-- `/foto/camera-matrimoniale-3.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/camera-matrimoniale.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/camera-matrimoniale-2.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/camera-matrimoniale-3.webp`
 
 #### Camere doppie
-- `/foto/camera-doppia.webp`
-- `/foto/camera-doppia-2.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/camera-doppia.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/camera-doppia-2.webp`
 
 #### Camere triple
-- `/foto/camera-tripla.webp`
-- `/foto/camera-tripla-2.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/camera-tripla.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/camera-tripla-2.webp`
 
 #### Camere quadruple
-- `/foto/camera-quadrupla.webp`
-- `/foto/camera-quadrupla-2.webp`
-- `/foto/camera-quadrupla-3.webp`
-- `/foto/camera-quadrupla-4.webp`
-- `/foto/camera-quadrupla-5.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/camera-quadrupla.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/camera-quadrupla-2.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/camera-quadrupla-3.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/camera-quadrupla-4.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/camera-quadrupla-5.webp`
 
 #### Bagni (mostrare di norma una sola foto per risposta)
-- `/foto/bagno-1.webp`
-- `/foto/bagno-classico-con-doccia.webp`
-- `/foto/bagno-con-vasca.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/bagno-1.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/bagno-classico-con-doccia.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/bagno-con-vasca.webp`
 
 #### Reception
-- `/foto/reception.webp`
-- `/foto/reception-2.webp`
-- `/foto/reception-3.webp`
-- `/foto/reception-4.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/reception.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/reception-2.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/reception-3.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/reception-4.webp`
 
 #### Colazione
-- `/foto/sala-colazioni.webp`
-- `/foto/sala-colazioni-2.webp` (usare raramente, solo se richiesto)
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/sala-colazioni.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/sala-colazioni-2.webp` (usare raramente, solo se richiesto)
 
 #### Struttura / Hotel
-- `/foto/hotel-1.webp`
-- `/foto/hotel-2.webp`
-- `/foto/hotel-3.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/hotel-1.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/hotel-2.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/hotel-3.webp`
 
 #### Dettagli camera/atmosfera camera
-- `/foto/dettagli.webp`
-- `/foto/terrazzo-2.webp`
-- `/foto/servizio-da-the.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/dettagli.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/terrazzo-2.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/servizio-da-the.webp`
 
 #### Esperienze cantine
-- `/foto/esperienza-cantine-sotterranee.webp`
-- `/foto/cantine-sotto-terra.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/esperienza-cantine-sotterranee.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/cantine-sotto-terra.webp`
 
 ### 6.2 Regole tassative di utilizzo immagini
 
