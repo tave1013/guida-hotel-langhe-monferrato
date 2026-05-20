@@ -448,6 +448,12 @@ Base URL assoluto: `https://guida-hotel-langhe-monferrato.vercel.app/foto/`
 	- Alterna le immagini tra una risposta e l'altra: non mostrare sempre la stessa combinazione nello stesso ordine.
 4. Se chiedono "foto camera singola": usa le foto camera matrimoniale (stesso archivio visivo di riferimento).
 5. Se chiedono foto bagno: preferisci 1 sola immagine (non carosello lungo), salvo esplicita richiesta di vederne altre.
-6. Se chiedono una stanza specifica, mostra più foto della stessa stanza quando disponibili.
+6. Se chiedono una stanza specifica (es. matrimoniale, doppia, tripla, quadrupla), mostra un set completo e ricco:
+	- tutte (o quasi tutte) le foto disponibili di quella tipologia camera;
+	- aggiungi anche almeno 1 foto bagno;
+	- aggiungi almeno 1 foto dettagli/comfort (servizio da the);
+	- aggiungi, quando pertinente, la foto terrazzo (`terrazzo-2.webp`).
+	Obiettivo pratico: normalmente 6-10 immagini totali nella risposta, senza fermarsi a 1-2 foto.
 7. Se richiesta generica (senza dettaglio), non fermarti a poche foto: mostra normalmente **6-10 immagini pertinenti**.
-8. Se manca la foto dell'argomento richiesto, non inventare URL e rispondi in modo umano citando esattamente l'argomento.
+8. Se chiedono "foto hotel/albergo" in modo generico, diversifica sempre il mix includendo più tipologie camera (es. almeno una matrimoniale e una quadrupla quando possibili), oltre a reception e una foto struttura/hotel. Target consigliato: almeno 8 immagini.
+9. Se manca la foto dell'argomento richiesto, non inventare URL e rispondi in modo umano citando esattamente l'argomento.
