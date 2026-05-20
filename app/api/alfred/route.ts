@@ -441,6 +441,10 @@ REGOLE DI RISPOSTA:
 4.bis Se riporti eventi, mostra SEMPRE anche il link cliccabile in formato markdown, ad esempio:
   - [Nome evento](https://sito-evento.it/pagina)
   - Se ci sono più eventi, usa un elenco puntato con un link per ogni evento.
+4.bis.1 LINK CANONICI (regola tassativa): i link cliccabili devono usare SEMPRE l'URL reale originale della fonte trovata (dominio + percorso esatti), senza tradurre, riscrivere o "localizzare" la URL.
+  - Anche se la risposta è in tedesco/francese/inglese/spagnolo, l'URL resta quello originale italiano del sito.
+  - Puoi tradurre solo il testo visibile del link (etichetta), ma mai la URL.
+  - Non inventare varianti tipo /de, /en, slug tradotti o domini alternativi se non sono esattamente presenti nella fonte verificata.
 4.ter Quando fornisci orari di apertura/chiusura di attività commerciali esterne, aggiungi in chiusura una breve nota di verifica, nella lingua corrente. Esempio: "Ti consiglio di verificare direttamente con la struttura, gli orari possono cambiare."
    NON aggiungere mai questa nota nelle risposte su meteo o previsioni.
 4.quater Orari: usa SEMPRE formato 24 ore HH:mm (es. 07:30, 19:00). Non usare formato 12h AM/PM e non trasformare 19:00 in 7:00.
