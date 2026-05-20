@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 
@@ -122,6 +122,178 @@ function renderRichText(value: string): ReactNode[] {
   return output
 }
 
+// ─── Image parsing ───────────────────────────────────────────────────────────
+
+const IMAGE_MD_REGEX = /!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g
+
+type TextBlock = { type: 'text'; content: string }
+type ImagesBlock = { type: 'images'; items: { alt: string; src: string }[] }
+type MessageBlock = TextBlock | ImagesBlock
+
+function parseMessageBlocks(text: string): MessageBlock[] {
+  const blocks: MessageBlock[] = []
+  let lastIndex = 0
+  let pendingImages: { alt: string; src: string }[] = []
+  IMAGE_MD_REGEX.lastIndex = 0
+
+  let match: RegExpExecArray | null
+  while ((match = IMAGE_MD_REGEX.exec(text)) !== null) {
+    const before = text.slice(lastIndex, match.index).replace(/^\n+/, '').trimEnd()
+    if (before) {
+      if (pendingImages.length) {
+        blocks.push({ type: 'images', items: pendingImages })
+        pendingImages = []
+      }
+      blocks.push({ type: 'text', content: before })
+    }
+    pendingImages.push({ alt: match[1], src: match[2] })
+    lastIndex = match.index + match[0].length
+  }
+
+  if (pendingImages.length) {
+    blocks.push({ type: 'images', items: pendingImages })
+  }
+
+  const tail = text.slice(lastIndex).replace(/^\n+/, '').trimEnd()
+  if (tail) {
+    blocks.push({ type: 'text', content: tail })
+  }
+
+  return blocks
+}
+
+// ─── Single image / carousel renderer ────────────────────────────────────────
+
+const IMG_RADIUS = '12px'
+
+function ImageBlock({
+  items,
+  onImageClick,
+}: {
+  items: { alt: string; src: string }[]
+  onImageClick: (src: string) => void
+}) {
+  if (items.length === 1) {
+    return (
+      <div style={{ marginTop: 6, marginBottom: 2 }}>
+        <img
+          src={items[0].src}
+          alt={items[0].alt}
+          onClick={() => onImageClick(items[0].src)}
+          style={{
+            display: 'block',
+            maxWidth: '85%',
+            width: '100%',
+            borderRadius: IMG_RADIUS,
+            cursor: 'zoom-in',
+            objectFit: 'cover',
+            boxShadow: '0 4px 14px rgba(30,17,10,0.14)',
+          }}
+        />
+      </div>
+    )
+  }
+
+  // Carousel: first image fully visible, second ~1/3 visible
+  return (
+    <div
+      style={{
+        marginTop: 6,
+        marginBottom: 2,
+        display: 'flex',
+        gap: 8,
+        overflowX: 'auto',
+        scrollSnapType: 'x mandatory',
+        WebkitOverflowScrolling: 'touch',
+        paddingBottom: 4,
+        // hide scrollbar
+        scrollbarWidth: 'none',
+      }}
+      className="hide-scrollbar"
+    >
+      {items.map((item, i) => (
+        <img
+          key={i}
+          src={item.src}
+          alt={item.alt}
+          onClick={() => onImageClick(item.src)}
+          style={{
+            flexShrink: 0,
+            minWidth: '65%',
+            maxWidth: '65%',
+            borderRadius: IMG_RADIUS,
+            cursor: 'zoom-in',
+            objectFit: 'cover',
+            scrollSnapAlign: 'start',
+            boxShadow: '0 4px 14px rgba(30,17,10,0.14)',
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+// ─── Lightbox ─────────────────────────────────────────────────────────────────
+
+function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        background: 'rgba(0,0,0,0.88)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+      }}
+    >
+      <button
+        onClick={onClose}
+        aria-label="Chiudi"
+        style={{
+          position: 'absolute',
+          top: 16,
+          right: 20,
+          background: 'none',
+          border: 'none',
+          color: '#fff',
+          fontSize: 32,
+          lineHeight: 1,
+          cursor: 'pointer',
+          fontWeight: 300,
+        }}
+      >
+        ×
+      </button>
+      <img
+        src={src}
+        alt="Anteprima"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          maxWidth: '100%',
+          maxHeight: '90vh',
+          borderRadius: 10,
+          boxShadow: '0 8px 40px rgba(0,0,0,0.6)',
+          objectFit: 'contain',
+        }}
+      />
+    </div>
+  )
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 function getMessageText(message: ChatMessage): string {
   const partsText = Array.isArray(message.parts)
     ? message.parts
@@ -163,7 +335,11 @@ function detectLanguageFromText(text: string): ConversationLang {
 export default function AlfredChatWidget() {
   const [input, setInput] = useState('')
   const [avatarSrc, setAvatarSrc] = useState('/Alfred.webp')
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
   const endRef = useRef<HTMLDivElement>(null)
+
+  const openLightbox = useCallback((src: string) => setLightboxSrc(src), [])
+  const closeLightbox = useCallback(() => setLightboxSrc(null), [])
 
   const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({ api: '/api/alfred' }),
@@ -278,6 +454,7 @@ export default function AlfredChatWidget() {
           if (!text) return null
 
           const isUser = message.role === 'user'
+          const blocks = isUser ? null : parseMessageBlocks(text)
 
           return (
             <article
@@ -296,7 +473,15 @@ export default function AlfredChatWidget() {
                 whiteSpace: 'pre-wrap',
               }}
             >
-              {renderRichText(text)}
+              {isUser || !blocks
+                ? renderRichText(text)
+                : blocks.map((block, bi) =>
+                    block.type === 'text' ? (
+                      <div key={bi}>{renderRichText(block.content)}</div>
+                    ) : (
+                      <ImageBlock key={bi} items={block.items} onImageClick={openLightbox} />
+                    ),
+                  )}
             </article>
           )
         })}
@@ -404,6 +589,8 @@ export default function AlfredChatWidget() {
           </button>
         </div>
       </footer>
+
+      {lightboxSrc && <Lightbox src={lightboxSrc} onClose={closeLightbox} />}
     </main>
   )
 }

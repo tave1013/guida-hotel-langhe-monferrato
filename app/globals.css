@@ -11,6 +11,9 @@ html, body {
 }
 ::-webkit-scrollbar { width: 0; }
 
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* Nasconde il launcher/popup dev di Next.js (icona "N" in basso a sinistra) */
 nextjs-portal {
 	display: none !important;
