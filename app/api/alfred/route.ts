@@ -205,7 +205,7 @@ function detectLanguageFromText(text: string): ConversationLang {
     scores.en += 3
   }
 
-  const itWords = /\b(ciao|salve|grazie|prego|dove|quando|come|cosa|quale|quali|ho|hai|ha|abbiamo|avete|sono|sei|è|siamo|siete|posso|puoi|può|voglio|vorrei|camera|camere|colazione|parcheggio|orario|orari|prenotazione|disponibile|benvenuto|buongiorno|buonasera|buonanotte|mi|mio|mia|il|lo|la|gli|le|un|una|del|della|dei|delle|per|con|da|di|in|a|che|non|si|ma|anche|più|molto|tutto|tutti|questo|questa|questi|queste)\b/gi
+  const itWords = /\b(ciao|salve|grazie|prego|dove|quando|quanto|come|cosa|quale|quali|ho|hai|ha|abbiamo|avete|sono|sei|è|siamo|siete|posso|puoi|può|voglio|vorrei|vorremmo|camera|camere|prezzo|prezzi|colazione|parcheggio|orario|orari|prenotazione|disponibile|benvenuto|buongiorno|buonasera|buonanotte|mi|mio|mia|il|lo|la|gli|le|un|una|del|della|dei|delle|per|con|da|di|in|a|che|non|si|ma|anche|più|molto|tutto|tutti|questo|questa|questi|queste)\b/gi
   const itMatches = t.match(itWords)
   scores.it = itMatches ? itMatches.length : 0
 
@@ -305,8 +305,11 @@ function detectConversationLanguage(messages: UIMessage[]): ConversationLang {
 
   const latestWordCount = latest.split(/\s+/).filter(Boolean).length
   const isShortFollowUp = latestWordCount <= 4
+  const isNeutralFollowUp = /^(ok|okay|va bene|perfetto|bene|grazie|thanks|merci|danke|gracias|👍|👌|si|sì|no)$/i.test(latest.trim())
 
-  if (isShortFollowUp) {
+  // Inherit previous language only for very short neutral follow-ups.
+  // This avoids switching to English when the guest writes short Italian requests.
+  if (isShortFollowUp && isNeutralFollowUp) {
     for (let i = 1; i < userTexts.length; i += 1) {
       const prevLang = detectLanguageFromText(getPrimaryUtteranceForLangDetection(userTexts[i]))
       if (prevLang !== 'it') return prevLang
