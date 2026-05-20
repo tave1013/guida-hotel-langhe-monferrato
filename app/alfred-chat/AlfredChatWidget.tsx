@@ -27,28 +27,6 @@ type TextBlock = { type: 'text'; content: string }
 type ImagesBlock = { type: 'images'; items: ImageItem[] }
 type MessageBlock = TextBlock | ImagesBlock
 type LightboxState = { images: ImageItem[]; index: number } | null
-type SpeechRecognitionResultLike = { 0: { transcript: string }; isFinal: boolean }
-type SpeechRecognitionEventLike = { resultIndex: number; results: SpeechRecognitionResultLike[] }
-type SpeechRecognitionLike = {
-  lang: string
-  continuous: boolean
-  interimResults: boolean
-  maxAlternatives: number
-  onresult: ((event: SpeechRecognitionEventLike) => void) | null
-  onerror: ((event: { error?: string }) => void) | null
-  onend: (() => void) | null
-  start: () => void
-  stop: () => void
-}
-
-type MicPermissionState = 'unknown' | 'granted' | 'denied'
-
-declare global {
-  interface Window {
-    SpeechRecognition?: new () => SpeechRecognitionLike
-    webkitSpeechRecognition?: new () => SpeechRecognitionLike
-  }
-}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -636,14 +614,7 @@ export default function AlfredChatWidget() {
   const [input, setInput] = useState('')
   const [avatarSrc, setAvatarSrc] = useState('/Alfred.webp')
   const [lightbox, setLightbox] = useState<LightboxState>(null)
-  const [isListening, setIsListening] = useState(false)
-  const [speechNotice, setSpeechNotice] = useState('')
-  const [showSpeechHelp, setShowSpeechHelp] = useState(false)
-  const [micPermission, setMicPermission] = useState<MicPermissionState>('unknown')
   const endRef = useRef<HTMLDivElement>(null)
-  const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
-  const speechBaseInputRef = useRef('')
-  const speechFinalRef = useRef('')
 
   const openLightbox = useCallback((images: ImageItem[], index: number) => {
     setLightbox({ images, index })
@@ -655,53 +626,6 @@ export default function AlfredChatWidget() {
   })
 
   const isLoading = status === 'submitted' || status === 'streaming'
-  const recognitionSupported = typeof window !== 'undefined'
-    && (!!window.SpeechRecognition || !!window.webkitSpeechRecognition)
-
-  const micHelpText = useMemo(() => {
-    if (typeof navigator === 'undefined') return 'Abilita il microfono dalle impostazioni del browser.'
-    const ua = navigator.userAgent
-    const isIOS = /iPhone|iPad|iPod/i.test(ua)
-    const isAndroid = /Android/i.test(ua)
-
-    if (isIOS) {
-      return 'Su iPhone/iPad: apri Impostazioni > Safari > Microfono e imposta su "Consenti", poi riapri la chat.'
-    }
-    if (isAndroid) {
-      return 'Su Android: controlla che Chrome abbia il permesso Microfono (Impostazioni app > Autorizzazioni), poi riprova.'
-    }
-    return 'Controlla il lucchetto vicino all\'indirizzo del sito e consenti l\'accesso al microfono, poi riprova.'
-  }, [])
-
-  const micRevokeText = useMemo(() => {
-    if (typeof navigator === 'undefined') return 'Puoi revocare il permesso in qualsiasi momento dalle impostazioni del browser.'
-    const ua = navigator.userAgent
-    const isIOS = /iPhone|iPad|iPod/i.test(ua)
-    const isAndroid = /Android/i.test(ua)
-    const isWindows = /Windows/i.test(ua)
-
-    if (isIOS) {
-      return 'Puoi rimuovere il permesso in qualsiasi momento da Impostazioni > Safari > Microfono.'
-    }
-    if (isAndroid) {
-      return 'Puoi rimuovere il permesso da Impostazioni app > Chrome > Autorizzazioni > Microfono.'
-    }
-    if (isWindows) {
-      return 'Puoi revocare il permesso dal lucchetto del sito nel browser o da Impostazioni Privacy di Windows > Microfono.'
-    }
-    return 'Puoi revocare il permesso dal lucchetto del sito o dalle impostazioni privacy del browser/sistema.'
-  }, [])
-
-  const speechRecognitionLang = useMemo(() => {
-    const all = messages as ChatMessage[]
-    const contextText = input.trim() || getLastUserText(all)
-    const lang = detectLanguageFromText(contextText)
-    if (lang === 'en') return 'en-US'
-    if (lang === 'fr') return 'fr-FR'
-    if (lang === 'de') return 'de-DE'
-    if (lang === 'es') return 'es-ES'
-    return 'it-IT'
-  }, [messages, input])
 
   const loadingText = useMemo(() => {
     const all = messages as ChatMessage[]
@@ -714,42 +638,6 @@ export default function AlfredChatWidget() {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading])
 
-  useEffect(() => {
-    return () => {
-      try {
-        recognitionRef.current?.stop()
-      } catch {
-        // noop
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    if (typeof navigator === 'undefined' || !navigator.permissions?.query) return
-    let mounted = true
-
-    navigator.permissions
-      .query({ name: 'microphone' as PermissionName })
-      .then((status) => {
-        if (!mounted) return
-        if (status.state === 'granted') setMicPermission('granted')
-        else if (status.state === 'denied') setMicPermission('denied')
-        else setMicPermission('unknown')
-
-        status.onchange = () => {
-          if (status.state === 'granted') setMicPermission('granted')
-          else if (status.state === 'denied') setMicPermission('denied')
-          else setMicPermission('unknown')
-        }
-      })
-      .catch(() => {
-        // Safari may not support permissions query for microphone
-      })
-
-    return () => {
-      mounted = false
-    }
-  }, [])
 
   useEffect(() => {
     if (!initialMessages.length) return
@@ -772,141 +660,6 @@ export default function AlfredChatWidget() {
     setInput('')
   }, [input, isLoading, sendMessage])
 
-  const stopListening = useCallback(() => {
-    try {
-      recognitionRef.current?.stop()
-    } catch {
-      // noop
-    }
-    setIsListening(false)
-  }, [])
-
-  const requestMicrophonePermission = useCallback(async () => {
-    if (typeof window === 'undefined' || !window.isSecureContext) {
-      setSpeechNotice('Il microfono richiede una connessione sicura (HTTPS).')
-      setShowSpeechHelp(true)
-      return false
-    }
-
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setSpeechNotice('Permessi microfono non disponibili su questo browser.')
-      setShowSpeechHelp(true)
-      return false
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      stream.getTracks().forEach((track) => track.stop())
-      setMicPermission('granted')
-      setSpeechNotice('Microfono attivato. Puoi iniziare a dettare.')
-      setShowSpeechHelp(false)
-      return true
-    } catch {
-      setMicPermission('denied')
-      setSpeechNotice('Microfono non autorizzato. Per usare la dettatura devi consentire il permesso.')
-      setShowSpeechHelp(true)
-      return false
-    }
-  }, [])
-
-  const startListening = useCallback(async (skipPermissionCheck = false) => {
-    setSpeechNotice('')
-
-    if (!recognitionSupported) {
-      setSpeechNotice('Dettatura vocale non disponibile su questo browser.')
-      setShowSpeechHelp(true)
-      return
-    }
-
-    if (!skipPermissionCheck && micPermission !== 'granted') {
-      const allowed = await requestMicrophonePermission()
-      if (!allowed) return
-    }
-
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SR) {
-      setSpeechNotice('Dettatura vocale non disponibile su questo browser.')
-      setShowSpeechHelp(true)
-      return
-    }
-
-    const recognition = new SR()
-    recognition.lang = speechRecognitionLang
-    recognition.continuous = true
-    recognition.interimResults = true
-    recognition.maxAlternatives = 1
-
-    speechBaseInputRef.current = input
-    speechFinalRef.current = ''
-
-    recognition.onresult = (event) => {
-      let finalChunk = speechFinalRef.current
-      let interimChunk = ''
-
-      for (let i = event.resultIndex; i < event.results.length; i += 1) {
-        const part = event.results[i]?.[0]?.transcript ?? ''
-        if (!part) continue
-        if (event.results[i].isFinal) {
-          finalChunk += `${part} `
-        } else {
-          interimChunk += part
-        }
-      }
-
-      speechFinalRef.current = finalChunk
-
-      const normalizedFinal = finalChunk.trim()
-      const normalizedInterim = interimChunk.trim()
-      const base = speechBaseInputRef.current
-      const combined = [base, normalizedFinal, normalizedInterim].filter(Boolean).join(' ').trim()
-      setInput(combined)
-    }
-
-    recognition.onerror = (event) => {
-      setIsListening(false)
-      const err = event?.error ?? ''
-      if (err === 'not-allowed' || err === 'service-not-allowed') {
-        setMicPermission('denied')
-        setSpeechNotice('Microfono non autorizzato. Abilita il permesso e riprova.')
-        setShowSpeechHelp(true)
-        return
-      }
-      if (err === 'audio-capture') {
-        setSpeechNotice('Microfono non rilevato. Verifica il dispositivo audio.')
-        setShowSpeechHelp(true)
-        return
-      }
-      if (err === 'no-speech') {
-        setSpeechNotice('Non ho rilevato voce. Puoi riprovare quando vuoi.')
-        return
-      }
-      setSpeechNotice('Dettatura interrotta. Riprova con un tocco sul microfono.')
-    }
-
-    recognition.onend = () => {
-      setIsListening(false)
-    }
-
-    recognitionRef.current = recognition
-    try {
-      recognition.start()
-      setIsListening(true)
-      setShowSpeechHelp(false)
-    } catch {
-      setIsListening(false)
-      setSpeechNotice('Impossibile avviare la dettatura in questo momento.')
-      setShowSpeechHelp(true)
-    }
-  }, [input, micPermission, recognitionSupported, requestMicrophonePermission, speechRecognitionLang])
-
-  const toggleListening = useCallback(() => {
-    if (isListening) {
-      stopListening()
-      return
-    }
-    startListening()
-  }, [isListening, startListening, stopListening])
-
   return (
     <main
       style={{
@@ -918,13 +671,6 @@ export default function AlfredChatWidget() {
         color: '#2f2317',
       }}
     >
-      <style>{`
-        @keyframes alfred-mic-ping {
-          0% { transform: translate(-50%, -50%) scale(0.75); opacity: 0.42; }
-          70% { transform: translate(-50%, -50%) scale(1.35); opacity: 0; }
-          100% { transform: translate(-50%, -50%) scale(1.45); opacity: 0; }
-        }
-      `}</style>
       {/* ── Header ── */}
       <header
         style={{
@@ -1069,69 +815,6 @@ export default function AlfredChatWidget() {
             boxShadow: '0 6px 16px rgba(30,17,10,0.06)',
           }}
         >
-          <button
-            type="button"
-            onClick={toggleListening}
-            disabled={isLoading}
-            aria-label={isListening ? 'Interrompi dettatura vocale' : 'Avvia dettatura vocale'}
-            title={isListening ? 'Interrompi dettatura' : 'Detta il messaggio'}
-            style={{
-              border: 'none',
-              background: isListening ? 'rgba(128,0,32,0.12)' : '#efe4d5',
-              color: isListening ? '#800020' : '#6c4a2f',
-              width: 40,
-              height: 40,
-              borderRadius: 12,
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              boxShadow: isListening
-                ? '0 0 0 1px rgba(128,0,32,0.18), 0 6px 14px rgba(30,17,10,0.12)'
-                : '0 6px 14px rgba(30,17,10,0.1)',
-              flexShrink: 0,
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'visible',
-            }}
-          >
-            {isListening && (
-              <>
-                <span
-                  style={{
-                    position: 'absolute',
-                    left: '50%',
-                    top: '50%',
-                    width: 38,
-                    height: 38,
-                    borderRadius: '50%',
-                    border: '1.5px solid rgba(128,0,32,0.35)',
-                    animation: 'alfred-mic-ping 1.4s ease-out infinite',
-                    pointerEvents: 'none',
-                  }}
-                />
-                <span
-                  style={{
-                    position: 'absolute',
-                    left: '50%',
-                    top: '50%',
-                    width: 38,
-                    height: 38,
-                    borderRadius: '50%',
-                    border: '1.5px solid rgba(128,0,32,0.25)',
-                    animation: 'alfred-mic-ping 1.4s ease-out infinite',
-                    animationDelay: '0.35s',
-                    pointerEvents: 'none',
-                  }}
-                />
-              </>
-            )}
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="1.8" />
-              <path d="M6 11.5a6 6 0 0 0 12 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              <path d="M12 17.5V21" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              <path d="M9 21h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-          </button>
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -1160,16 +843,16 @@ export default function AlfredChatWidget() {
           <button
             type="button"
             onClick={onSend}
-            disabled={isLoading || !input.trim() || isListening}
+            disabled={isLoading || !input.trim()}
             aria-label="Invia messaggio"
             style={{
               border: 'none',
-              background: isLoading || !input.trim() || isListening ? '#cdb79b' : '#6c4a2f',
+              background: isLoading || !input.trim() ? '#cdb79b' : '#6c4a2f',
               color: '#f8f3ea',
               width: 40,
               height: 40,
               borderRadius: 12,
-              cursor: isLoading || !input.trim() || isListening ? 'not-allowed' : 'pointer',
+              cursor: isLoading || !input.trim() ? 'not-allowed' : 'pointer',
               boxShadow: '0 6px 14px rgba(30,17,10,0.18)',
               fontSize: 18,
               flexShrink: 0,
@@ -1178,80 +861,6 @@ export default function AlfredChatWidget() {
             ➤
           </button>
         </div>
-        {speechNotice && (
-          <div
-            style={{
-              marginTop: 6,
-              fontSize: 12,
-              color: '#7a3f32',
-              paddingLeft: 4,
-              lineHeight: 1.35,
-            }}
-          >
-            {speechNotice}
-          </div>
-        )}
-        {showSpeechHelp && (
-          <div
-            style={{
-              marginTop: 8,
-              border: '1px solid #e1d2bf',
-              borderRadius: 12,
-              background: '#fff9f3',
-              padding: '9px 10px',
-            }}
-          >
-            <div style={{ fontSize: 12, color: '#4a3422', lineHeight: 1.4 }}>
-              Per attivare la dettatura: tocca "Attiva microfono" e consenti il permesso quando il browser lo richiede.
-            </div>
-            <div style={{ marginTop: 4, fontSize: 11, color: '#6b4d35', lineHeight: 1.35 }}>
-              {micHelpText}
-            </div>
-            <div style={{ marginTop: 4, fontSize: 11, color: '#6b4d35', lineHeight: 1.35 }}>
-              Privacy: l'audio viene usato solo per la trascrizione nel browser e non viene salvato nella chat.
-            </div>
-            <div style={{ marginTop: 4, fontSize: 11, color: '#6b4d35', lineHeight: 1.35 }}>
-              {micRevokeText}
-            </div>
-            <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-              <button
-                type="button"
-                onClick={async () => {
-                  const ok = await requestMicrophonePermission()
-                  if (ok) {
-                    startListening(true)
-                  }
-                }}
-                style={{
-                  border: 'none',
-                  borderRadius: 9,
-                  background: '#6c4a2f',
-                  color: '#fff',
-                  fontSize: 12,
-                  padding: '6px 10px',
-                  cursor: 'pointer',
-                }}
-              >
-                Attiva microfono
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowSpeechHelp(false)}
-                style={{
-                  border: '1px solid #d6c1a8',
-                  borderRadius: 9,
-                  background: '#fff',
-                  color: '#5b402c',
-                  fontSize: 12,
-                  padding: '6px 10px',
-                  cursor: 'pointer',
-                }}
-              >
-                Chiudi
-              </button>
-            </div>
-          </div>
-        )}
       </footer>
 
       {lightbox && (
