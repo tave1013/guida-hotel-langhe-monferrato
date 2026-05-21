@@ -27,6 +27,7 @@ type TextBlock = { type: 'text'; content: string }
 type ImagesBlock = { type: 'images'; items: ImageItem[] }
 type MessageBlock = TextBlock | ImagesBlock
 type LightboxState = { images: ImageItem[]; index: number } | null
+type StoredChatPayload = { messages: ChatMessage[]; lastMessageAt: number }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -66,6 +67,45 @@ const GRID_W = 244
 const GRID_GAP = 3
 const BOOKING_URL = 'https://www.hotellanghemonferrato.com/prenota'
 const CHAT_STORAGE_KEY = 'alfred_widget_chat_v1'
+const SESSION_TTL_MS = 12 * 60 * 60 * 1000
+
+function clearStoredChatSession() {
+  try {
+    localStorage.removeItem(CHAT_STORAGE_KEY)
+  } catch {
+    // noop
+  }
+}
+
+function normalizeMessages(list: unknown): ChatMessage[] {
+  if (!Array.isArray(list)) return []
+  return list.filter((m) => m && (m.role === 'user' || m.role === 'assistant')) as ChatMessage[]
+}
+
+function loadStoredChatSession(): ChatMessage[] {
+  try {
+    const raw = localStorage.getItem(CHAT_STORAGE_KEY)
+    if (!raw) return []
+    const parsed: unknown = JSON.parse(raw)
+
+    // Backward compatibility with older payloads (array-only)
+    if (Array.isArray(parsed)) {
+      return normalizeMessages(parsed)
+    }
+
+    if (!parsed || typeof parsed !== 'object') return []
+    const payload = parsed as Partial<StoredChatPayload>
+    const lastMessageAt = typeof payload.lastMessageAt === 'number' ? payload.lastMessageAt : 0
+    if (lastMessageAt > 0 && Date.now() - lastMessageAt > SESSION_TTL_MS) {
+      clearStoredChatSession()
+      return []
+    }
+
+    return normalizeMessages(payload.messages)
+  } catch {
+    return []
+  }
+}
 
 function isBookingLink(href: string): boolean {
   try {
@@ -607,20 +647,19 @@ const USER_BUBBLE: React.CSSProperties = {
 
 export default function AlfredChatWidget() {
   const [initialMessages] = useState<ChatMessage[]>(() => {
-    try {
-      const raw = localStorage.getItem(CHAT_STORAGE_KEY)
-      if (!raw) return []
-      const parsed = JSON.parse(raw)
-      if (!Array.isArray(parsed)) return []
-      return parsed.filter((m) => m && (m.role === 'user' || m.role === 'assistant'))
-    } catch {
-      return []
-    }
+    return loadStoredChatSession()
   })
   const [input, setInput] = useState('')
   const [avatarSrc, setAvatarSrc] = useState('/Alfred.webp')
   const [lightbox, setLightbox] = useState<LightboxState>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [showFeedbackScreen, setShowFeedbackScreen] = useState(false)
+  const [hoverRating, setHoverRating] = useState<number | null>(null)
+  const [selectedRating, setSelectedRating] = useState<number | null>(null)
+  const [showThanks, setShowThanks] = useState(false)
   const endRef = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const closeTimerRef = useRef<number | null>(null)
 
   const openLightbox = useCallback((images: ImageItem[], index: number) => {
     setLightbox({ images, index })
@@ -632,6 +671,47 @@ export default function AlfredChatWidget() {
   })
 
   const isLoading = status === 'submitted' || status === 'streaming'
+
+  const clearCurrentSession = useCallback(() => {
+    setMessages([] as never)
+    setInput('')
+    clearStoredChatSession()
+  }, [setMessages])
+
+  const askCloseChat = useCallback(() => {
+    setMenuOpen(false)
+    if (isLoading) stop()
+    setShowFeedbackScreen(true)
+    setShowThanks(false)
+    setHoverRating(null)
+    setSelectedRating(null)
+  }, [isLoading, stop])
+
+  const finalizeAndCloseWidget = useCallback(() => {
+    try {
+      window.parent.postMessage({ type: 'alfred-close-panel' }, '*')
+    } catch {
+      // noop
+    }
+  }, [])
+
+  const submitRating = useCallback(
+    (value: number) => {
+      const rounded = Math.max(0.5, Math.min(5, Math.round(value * 2) / 2))
+      setSelectedRating(rounded)
+      setHoverRating(null)
+      setShowThanks(true)
+      clearCurrentSession()
+
+      if (closeTimerRef.current) {
+        window.clearTimeout(closeTimerRef.current)
+      }
+      closeTimerRef.current = window.setTimeout(() => {
+        finalizeAndCloseWidget()
+      }, 3000)
+    },
+    [clearCurrentSession, finalizeAndCloseWidget],
+  )
 
   const loadingText = useMemo(() => {
     const all = messages as ChatMessage[]
@@ -652,8 +732,37 @@ export default function AlfredChatWidget() {
   }, [])
 
   useEffect(() => {
+    const onClickOutside = (event: MouseEvent) => {
+      if (!menuRef.current) return
+      if (!menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
+
+  useEffect(
+    () => () => {
+      if (closeTimerRef.current) {
+        window.clearTimeout(closeTimerRef.current)
+      }
+    },
+    [],
+  )
+
+  useEffect(() => {
     try {
-      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages))
+      const safeMessages = normalizeMessages(messages)
+      if (!safeMessages.length) {
+        clearStoredChatSession()
+        return
+      }
+      const payload: StoredChatPayload = {
+        messages: safeMessages,
+        lastMessageAt: Date.now(),
+      }
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(payload))
     } catch {
       // noop
     }
@@ -682,6 +791,7 @@ export default function AlfredChatWidget() {
         display: 'flex',
         flexDirection: 'column',
         color: '#2f2317',
+        position: 'relative',
       }}
     >
       {/* ── Header ── */}
@@ -718,6 +828,65 @@ export default function AlfredChatWidget() {
           <div style={{ fontSize: 12, opacity: 0.78 }}>
             Concierge virtuale • Hotel Langhe &amp; Monferrato
           </div>
+        </div>
+        <div ref={menuRef} style={{ marginLeft: 'auto', position: 'relative' }}>
+          <button
+            type="button"
+            aria-label="Apri menu chat"
+            title="Apri menu chat"
+            onClick={() => setMenuOpen((v) => !v)}
+            style={{
+              border: '1px solid #dbc6ac',
+              background: '#fff',
+              color: '#5a3e2b',
+              width: 34,
+              height: 34,
+              borderRadius: 10,
+              cursor: 'pointer',
+              fontSize: 20,
+              lineHeight: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            ⋯
+          </button>
+          {menuOpen && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 40,
+                right: 0,
+                background: '#fff',
+                border: '1px solid #e1d2bf',
+                borderRadius: 12,
+                boxShadow: '0 10px 24px rgba(30,17,10,0.16)',
+                minWidth: 190,
+                zIndex: 30,
+                padding: 6,
+              }}
+            >
+              <button
+                type="button"
+                onClick={askCloseChat}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  border: 'none',
+                  background: 'transparent',
+                  color: '#5a3e2b',
+                  borderRadius: 8,
+                  padding: '10px 12px',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Chiudi chat e lascia un voto
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -896,6 +1065,142 @@ export default function AlfredChatWidget() {
           </button>
         </div>
       </footer>
+
+      {showFeedbackScreen && (
+        <section
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 40,
+            background: 'linear-gradient(180deg, #f7f1e8 0%, #f2eadf 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 420,
+              background: '#fff',
+              border: '1px solid #e1d2bf',
+              borderRadius: 18,
+              boxShadow: '0 16px 36px rgba(30,17,10,0.16)',
+              padding: '24px 18px',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 26, color: '#5a3e2b', marginBottom: 10 }}>
+              Grazie per aver chattato con Alfred
+            </div>
+            <p style={{ fontSize: 17, color: '#3f2d1f', lineHeight: 1.5, margin: '0 0 20px' }}>
+              Ti sono stato utile? Vota Alfred, ci aiuta molto! 🎩
+            </p>
+
+            {!showThanks && (
+              <>
+                <div
+                  style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 8 }}
+                  onMouseLeave={() => setHoverRating(null)}
+                >
+                  {Array.from({ length: 5 }).map((_, idx) => {
+                    const starIndex = idx + 1
+                    const activeRating = hoverRating ?? selectedRating ?? 0
+                    const fill = Math.max(0, Math.min(1, activeRating - idx))
+
+                    return (
+                      <div key={starIndex} style={{ position: 'relative', width: 38, height: 38 }}>
+                        <span
+                          aria-hidden="true"
+                          style={{
+                            position: 'absolute',
+                            inset: 0,
+                            color: '#d4cabd',
+                            fontSize: 36,
+                            lineHeight: '38px',
+                            userSelect: 'none',
+                          }}
+                        >
+                          ★
+                        </span>
+                        <span
+                          aria-hidden="true"
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: `${fill * 100}%`,
+                            overflow: 'hidden',
+                            color: '#e3a72b',
+                            fontSize: 36,
+                            lineHeight: '38px',
+                            userSelect: 'none',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          ★
+                        </span>
+
+                        <button
+                          type="button"
+                          aria-label={`Valuta ${starIndex - 0.5} stelle`}
+                          onMouseEnter={() => setHoverRating(starIndex - 0.5)}
+                          onFocus={() => setHoverRating(starIndex - 0.5)}
+                          onClick={() => submitRating(starIndex - 0.5)}
+                          onTouchStart={() => setHoverRating(starIndex - 0.5)}
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '50%',
+                            height: '100%',
+                            border: 'none',
+                            background: 'transparent',
+                            cursor: 'pointer',
+                            padding: 0,
+                          }}
+                        />
+                        <button
+                          type="button"
+                          aria-label={`Valuta ${starIndex} stelle`}
+                          onMouseEnter={() => setHoverRating(starIndex)}
+                          onFocus={() => setHoverRating(starIndex)}
+                          onClick={() => submitRating(starIndex)}
+                          onTouchStart={() => setHoverRating(starIndex)}
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            right: 0,
+                            width: '50%',
+                            height: '100%',
+                            border: 'none',
+                            background: 'transparent',
+                            cursor: 'pointer',
+                            padding: 0,
+                          }}
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
+                <div style={{ fontSize: 13, color: '#7a6352' }}>Puoi scegliere anche mezze stelle</div>
+              </>
+            )}
+
+            {showThanks && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 18, fontWeight: 700, color: '#5a3e2b', marginBottom: 6 }}>
+                  Grazie per il tuo feedback! A presto!
+                </div>
+                {selectedRating && (
+                  <div style={{ fontSize: 14, color: '#7a6352' }}>Valutazione registrata: {selectedRating} / 5</div>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {lightbox && (
         <Lightbox images={lightbox.images} initialIndex={lightbox.index} onClose={closeLightbox} />

@@ -344,6 +344,8 @@
     } else if (event.data.type === 'alfred-booking-open' && typeof event.data.url === 'string') {
       closePanel()
       window.location.href = event.data.url
+    } else if (event.data.type === 'alfred-close-panel') {
+      closePanel()
     }
   })
 })()
