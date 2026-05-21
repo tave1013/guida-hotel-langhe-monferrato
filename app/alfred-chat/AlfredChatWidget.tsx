@@ -11,6 +11,7 @@ import {
 } from 'react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
+import { track } from '@vercel/analytics'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -68,6 +69,100 @@ const GRID_GAP = 3
 const BOOKING_URL = 'https://www.hotellanghemonferrato.com/prenota'
 const CHAT_STORAGE_KEY = 'alfred_widget_chat_v1'
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000
+
+const ANALYTICS_TOPIC_PATTERNS: Array<{ topic: string; patterns: RegExp[] }> = [
+  {
+    topic: 'prezzi_camere',
+    patterns: [/\b(prezzo|prezzi|tariffa|tariffe|costo|costi|quanto costa|camera|camere|suite|suite)\b/gi],
+  },
+  {
+    topic: 'colazione',
+    patterns: [/\b(colazione|breakfast|prima colazione|buffet)\b/gi],
+  },
+  {
+    topic: 'orari',
+    patterns: [/\b(orario|orari|a che ora|quando apr|quando chiud|check[- ]?in|check[- ]?out|arrivo|partenza)\b/gi],
+  },
+  {
+    topic: 'piscina',
+    patterns: [/\b(piscina|pool)\b/gi],
+  },
+  {
+    topic: 'prenotazione',
+    patterns: [/\b(prenot|booking|disponibilit\w*|riserv)\b/gi],
+  },
+  {
+    topic: 'ristorazione',
+    patterns: [/\b(ristorante|cucina|mangiare|pranzo|cena|menu|men\u00f9|degustazione)\b/gi],
+  },
+  {
+    topic: 'trasporti',
+    patterns: [/\b(parcheggio|taxi|treno|stazione|navetta|aeroport|come arriv|muoversi|trasporto)\b/gi],
+  },
+  {
+    topic: 'servizi',
+    patterns: [/\b(wifi|spa|meeting|sale meeting|evento|eventi|serviz|animali|pet|culla)\b/gi],
+  },
+]
+
+const KNOWLEDGE_GAP_PATTERNS: RegExp[] = [
+  /(?:non ho|non abbiamo|non dispongo(?: di)?|non possiedo|non ci sono|non c'?e|non risultano|mancano)(?:\s+(?:foto|immagini|informazioni|info|dati))?(?:\s+(?:su|di|del|della|dello|delle|dei|degli|sul|sulla|sullo|sull'))?\s+([a-zàâäçéèêëìíîïòóôöùúûüÿœ' -]{2,60})/i,
+  /(?:foto|immagini|informazioni|info|dati)\s+(?:su|di|del|della|dello|delle|dei|degli|sul|sulla|sullo|sull')\s+([a-zàâäçéèêëìíîïòóôöùúûüÿœ' -]{2,60})/i,
+]
+
+function safeTrack(eventName: string, payload?: Record<string, string | number | boolean>) {
+  try {
+    void track(eventName, payload)
+  } catch {
+    // noop
+  }
+}
+
+function normalizeAnalyticsValue(value: string) {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s_-]+/g, '')
+    .trim()
+    .replace(/\s+/g, '_')
+}
+
+function detectChatTopic(text: string): string {
+  const normalized = text.toLowerCase()
+  for (const group of ANALYTICS_TOPIC_PATTERNS) {
+    if (group.patterns.some((pattern) => pattern.test(normalized))) return group.topic
+  }
+  return 'generale'
+}
+
+function extractKnowledgeGapItems(text: string): string[] {
+  const items: string[] = []
+  const normalized = text.replace(/\s+/g, ' ').trim()
+  for (const pattern of KNOWLEDGE_GAP_PATTERNS) {
+    pattern.lastIndex = 0
+    const match = pattern.exec(normalized)
+    if (!match?.[1]) continue
+    const value = match[1]
+      .replace(/^[\s'"«»]+|[\s'"«».!,?;:]+$/g, '')
+      .replace(/^(?:la|lo|le|i|gli|il|l')\s+/i, '')
+      .trim()
+    if (value) items.push(normalizeAnalyticsValue(value))
+  }
+  return Array.from(new Set(items))
+}
+
+function trackChatLinkClick(type: 'whatsapp' | 'maps' | 'telefono') {
+  safeTrack('Conversion_Click', { type })
+}
+
+function getConversionTypeFromHref(href: string): 'whatsapp' | 'maps' | 'telefono' | null {
+  const normalized = href.toLowerCase()
+  if (normalized.startsWith('tel:')) return 'telefono'
+  if (normalized.includes('wa.me') || normalized.includes('whatsapp.com')) return 'whatsapp'
+  if (normalized.includes('google.com/maps') || normalized.includes('maps.google.com')) return 'maps'
+  return null
+}
 
 function clearStoredChatSession() {
   try {
@@ -172,6 +267,7 @@ function renderRichText(value: string): ReactNode[] {
     if (markdownLabel && markdownUrl) {
       const href = cleanTrailingPunctuation(markdownUrl)
       const bookingLink = isBookingLink(href)
+      const conversionType = getConversionTypeFromHref(href)
       output.push(
         <a
           key={key}
@@ -180,6 +276,7 @@ function renderRichText(value: string): ReactNode[] {
           rel={bookingLink ? undefined : 'noopener noreferrer'}
           style={LINK_STYLE}
           onClick={(e) => {
+            if (conversionType) trackChatLinkClick(conversionType)
             if (!bookingLink) return
             e.preventDefault()
             openBookingInSameTab(href)
@@ -191,8 +288,18 @@ function renderRichText(value: string): ReactNode[] {
     } else if (rawUrl) {
       const normalized = cleanTrailingPunctuation(rawUrl)
       const href = normalized.startsWith('www.') ? `https://${normalized}` : normalized
+      const conversionType = getConversionTypeFromHref(href)
       output.push(
-        <a key={key} href={href} target="_blank" rel="noopener noreferrer" style={LINK_STYLE}>
+        <a
+          key={key}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={LINK_STYLE}
+          onClick={() => {
+            if (conversionType) trackChatLinkClick(conversionType)
+          }}
+        >
           {normalized}
         </a>,
       )
@@ -207,7 +314,14 @@ function renderRichText(value: string): ReactNode[] {
       const phone = cleanTrailingPunctuation(rawPhone)
       const tel = phone.replace(/[^+\d]/g, '')
       output.push(
-        <a key={key} href={`tel:${tel}`} target="_blank" rel="noopener noreferrer" style={LINK_STYLE}>
+        <a
+          key={key}
+          href={`tel:${tel}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={LINK_STYLE}
+          onClick={() => trackChatLinkClick('telefono')}
+        >
           {phone}
         </a>,
       )
@@ -660,6 +774,7 @@ export default function AlfredChatWidget() {
   const endRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const closeTimerRef = useRef<number | null>(null)
+  const trackedAssistantMessageIdsRef = useRef<Set<string>>(new Set())
 
   const openLightbox = useCallback((images: ImageItem[], index: number) => {
     setLightbox({ images, index })
@@ -698,6 +813,7 @@ export default function AlfredChatWidget() {
   const submitRating = useCallback(
     (value: number) => {
       const rounded = Math.max(0.5, Math.min(5, Math.round(value * 2) / 2))
+      safeTrack('Chat_Rating', { score: String(rounded) })
       setSelectedRating(rounded)
       setHoverRating(null)
       setShowThanks(true)
@@ -727,9 +843,26 @@ export default function AlfredChatWidget() {
 
   useEffect(() => {
     if (!initialMessages.length) return
+    initialMessages.forEach((message) => {
+      if (message.role === 'assistant') trackedAssistantMessageIdsRef.current.add(message.id)
+    })
     setMessages(initialMessages as never)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    ;(messages as ChatMessage[]).forEach((message) => {
+      if (message.role !== 'assistant') return
+      if (trackedAssistantMessageIdsRef.current.has(message.id)) return
+      trackedAssistantMessageIdsRef.current.add(message.id)
+
+      const text = getMessageText(message)
+      if (!text) return
+      extractKnowledgeGapItems(text).forEach((missingItem) => {
+        safeTrack('Knowledge_Gap', { missing_item: missingItem })
+      })
+    })
+  }, [messages])
 
   useEffect(() => {
     const onClickOutside = (event: MouseEvent) => {
@@ -771,6 +904,7 @@ export default function AlfredChatWidget() {
   const onSend = useCallback(() => {
     const text = input.trim()
     if (!text || isLoading) return
+    safeTrack('Chat_Topic', { topic: detectChatTopic(text) })
     sendMessage({ text })
     setInput('')
   }, [input, isLoading, sendMessage])
