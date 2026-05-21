@@ -11,7 +11,6 @@ import {
 } from 'react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
-import { BookingData, calculateBookingCosts, formatBookingSummary, formatBookingEmail, isBookingDataComplete, getNextBookingQuestion } from '@/app/lib/booking-manager'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -56,12 +55,11 @@ const IMAGE_MD_REGEX = /!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g
 // Strips any partial/incomplete image markdown syntax that leaks during streaming
 // e.g. "![Camera" or "![Camera](https://...partial" etc.
 function cleanStreamingArtifacts(text: string): string {
+  // Remove any incomplete image markdown (started but not closed)
   return text
-    .replace(/!\[[^\]]*$/, '')
-    .replace(/!\[[^\]]*\]\([^)]*$/, '')
-    .replace(/!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/g, '')
-    // Strip hidden booking JSON tag from visible output
-    .replace(/<!--BOOKING_DATA:[\s\S]*?-->/g, '')
+    .replace(/!\[[^\]]*$/, '')                          // ![...  (open bracket, no close)
+    .replace(/!\[[^\]]*\]\([^)]*$/, '')                 // ![...]( url not closed
+    .replace(/!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/g, '') // fully matched images (already in blocks)
     .trimEnd()
 }
 
@@ -70,47 +68,6 @@ const GRID_GAP = 3
 const BOOKING_URL = 'https://www.hotellanghemonferrato.com/prenota'
 const CHAT_STORAGE_KEY = 'alfred_widget_chat_v1'
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000
-const BOOKING_STATE_KEY = 'alfred_booking_session_v1'
-
-let NEXT_BOOKING_NUMBER = 1001
-
-function getNextBookingNumber(): number {
-  if (typeof window === 'undefined') return NEXT_BOOKING_NUMBER
-  try {
-    const stored = localStorage.getItem('alfred_next_booking_number')
-    const num = stored ? parseInt(stored, 10) : NEXT_BOOKING_NUMBER
-    const next = num + 1
-    localStorage.setItem('alfred_next_booking_number', String(next))
-    return num
-  } catch {
-    return NEXT_BOOKING_NUMBER++
-  }
-}
-
-function saveBookingState(data: BookingData) {
-  try {
-    localStorage.setItem(BOOKING_STATE_KEY, JSON.stringify(data))
-  } catch {
-    // noop
-  }
-}
-
-function loadBookingState(): BookingData | null {
-  try {
-    const raw = localStorage.getItem(BOOKING_STATE_KEY)
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
-}
-
-function clearBookingState() {
-  try {
-    localStorage.removeItem(BOOKING_STATE_KEY)
-  } catch {
-    // noop
-  }
-}
 function clearStoredChatSession() {
   try {
     localStorage.removeItem(CHAT_STORAGE_KEY)
@@ -705,10 +662,6 @@ export default function AlfredChatWidget() {
   const [hoverRating, setHoverRating] = useState<number | null>(null)
   const [selectedRating, setSelectedRating] = useState<number | null>(null)
   const [showThanks, setShowThanks] = useState(false)
-  const [bookingData, setBookingData] = useState<BookingData | null>(() => loadBookingState())
-  const [bookingStep, setBookingStep] = useState<'idle' | 'collecting' | 'reviewing' | 'sending' | 'sent'>('idle')
-  const [showBookingSummary, setShowBookingSummary] = useState(false)
-  const [bookingError, setBookingError] = useState<string | null>(null)
   const endRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const closeTimerRef = useRef<number | null>(null)
@@ -765,49 +718,6 @@ export default function AlfredChatWidget() {
     [clearCurrentSession, finalizeAndCloseWidget],
   )
 
-  const submitBooking = useCallback(async () => {
-    if (!bookingData || !isBookingDataComplete(bookingData)) {
-      setBookingError('Dati prenotazione incompleti')
-      return
-    }
-    setBookingError(null)
-    setBookingStep('sending')
-    try {
-      const bookingNum = getNextBookingNumber()
-      const costs = calculateBookingCosts(bookingData)
-      const { subject, body } = formatBookingEmail(bookingData, costs, bookingNum)
-      const response = await fetch('/api/send-booking-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: 'booking@hotellanghemonferrato.com',
-          subject,
-          body,
-        }),
-      })
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Errore nell\'invio dell\'email')
-      }
-      setBookingStep('sent')
-      setShowBookingSummary(false)
-      // Update booking with confirmation details
-      setBookingData((prev) =>
-        prev
-          ? { ...prev, confirmed: true, bookingNumber: bookingNum }
-          : null
-      )
-      // Add success message to chat
-      sendMessage({
-        text: `✅ Prenotazione confermata! Numero prenotazione: ${bookingNum}. Riceverai un'email di conferma a breve.`,
-      })
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Errore sconosciuto'
-      setBookingError(msg)
-      setBookingStep('reviewing')
-    }
-  }, [bookingData, sendMessage])
-
   const loadingText = useMemo(() => {
     const all = messages as ChatMessage[]
     const lastUserText = getLastUserText(all)
@@ -862,286 +772,6 @@ export default function AlfredChatWidget() {
       // noop
     }
   }, [messages])
-
-  useEffect(() => {
-    if (bookingData) {
-      saveBookingState(bookingData)
-    }
-  }, [bookingData])
-
-  // Analyze assistant messages for booking data extraction
-  useEffect(() => {
-    const allMessages = messages as ChatMessage[]
-    const lastAssistantMessage = allMessages
-      .filter((m) => m.role === 'assistant')
-      .pop()
-    
-    if (!lastAssistantMessage || bookingStep === 'reviewing' || bookingStep === 'sending' || bookingStep === 'sent') {
-      return
-    }
-
-    const text = (lastAssistantMessage.content || '')
-      .toLowerCase()
-      .concat((lastAssistantMessage.parts?.[0]?.text || '').toLowerCase())
-
-    // Check if Alfred is asking booking questions
-    const bookingKeywords = [
-      'prenotazione',
-      'prenotare',
-      'camere',
-      'check-in',
-      'check-out',
-      'ospiti',
-      'adulti',
-      'bambini',
-      'colazione',
-      'late checkout',
-      'animali',
-      'pet',
-      'numero di persone',
-      'quantità di camere',
-    ]
-
-    const isBookingContext = bookingKeywords.some((kw) => text.includes(kw))
-
-    if (isBookingContext && !bookingData) {
-      // Initialize booking data if not already set
-      setBookingData({
-        adults: 0,
-        children: 0,
-        rooms: [],
-        breakfast: 'esclusa',
-        lateCheckout: false,
-        petCount: 0,
-        notes: '',
-      })
-      setBookingStep('collecting')
-    }
-
-    // Extract dates using regex patterns
-    const datePattern = /(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})/g
-    const dates = text.match(datePattern) || []
-    if (dates.length >= 1 && bookingData && !bookingData.checkIn) {
-      // Try to extract dates in format DD/MM/YYYY
-      const dateMatches = (lastAssistantMessage.content || '').match(
-        /(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})/g
-      )
-      if (dateMatches && dateMatches.length > 0) {
-        const parseDate = (dateStr: string) => {
-          const parts = dateStr.split(/[/-]/)
-          const day = parts[0].padStart(2, '0')
-          const month = parts[1].padStart(2, '0')
-          const year = parts[2].length === 2 ? '20' + parts[2] : parts[2]
-          return `${year}-${month}-${day}`
-        }
-        if (dateMatches[0]) {
-          setBookingData((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  checkIn: parseDate(dateMatches[0]),
-                }
-              : null
-          )
-        }
-        if (dateMatches[1]) {
-          setBookingData((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  checkOut: parseDate(dateMatches[1]),
-                }
-              : null
-          )
-        }
-      }
-    }
-
-    // Extract numbers (for adults, children, rooms)
-    const numberPattern = /(\d+)\s*(?:adulti?|persone|camere?|bambini?|notti?|animali?|pet)/gi
-    let match
-    while ((match = numberPattern.exec(text)) !== null) {
-      const number = parseInt(match[1], 10)
-      const context = match[0].toLowerCase()
-
-      if (
-        context.includes('adult') ||
-        context.includes('persona') ||
-        context.includes('ospite')
-      ) {
-        setBookingData((prev) =>
-          prev ? { ...prev, adults: Math.max(prev.adults || 0, number) } : null
-        )
-      } else if (context.includes('bambin') || context.includes('child')) {
-        setBookingData((prev) =>
-          prev
-            ? { ...prev, children: Math.max(prev.children || 0, number) }
-            : null
-        )
-      } else if (context.includes('camera') || context.includes('room')) {
-        setBookingData((prev) =>
-          prev ? { ...prev, rooms: prev.rooms || [] } : null
-        )
-      } else if (context.includes('animale') || context.includes('pet')) {
-        setBookingData((prev) =>
-          prev ? { ...prev, petCount: Math.max(prev.petCount || 0, number) } : null
-        )
-      }
-    }
-
-    // Extract room types
-    const roomTypes: Array<{ type: 'singola' | 'matrimoniale' | 'doppia' | 'tripla' | 'quadrupla' | 'suite'; count: number }> = []
-    const roomTypePatterns = [
-      { pattern: /(\d+)\s*singol/gi, type: 'singola' as const },
-      { pattern: /(\d+)\s*matrimonial/gi, type: 'matrimoniale' as const },
-      { pattern: /(\d+)\s*doppi/gi, type: 'doppia' as const },
-      { pattern: /(\d+)\s*tripl/gi, type: 'tripla' as const },
-      { pattern: /(\d+)\s*quadrupl/gi, type: 'quadrupla' as const },
-      { pattern: /(\d+)\s*suit/gi, type: 'suite' as const },
-    ]
-
-    for (const { pattern, type } of roomTypePatterns) {
-      let roomMatch
-      while ((roomMatch = pattern.exec(text)) !== null) {
-        const count = parseInt(roomMatch[1], 10)
-        roomTypes.push({ type, count })
-      }
-    }
-
-    if (roomTypes.length > 0 && bookingData && !bookingData.rooms?.length) {
-      setBookingData((prev) =>
-        prev ? { ...prev, rooms: roomTypes } : null
-      )
-    }
-
-    // Check for breakfast mention
-    if (/colazione|breakfast/.test(text) && bookingData) {
-      if (/inclus|si|yes|prefer|vuole/.test(text)) {
-        setBookingData((prev) =>
-          prev ? { ...prev, breakfast: 'inclusa' } : null
-        )
-      }
-    }
-
-    // Check for late checkout
-    if (/late\s*checkout|checkout\s*tard|check\s*out\s*tard/i.test(text)) {
-      setBookingData((prev) =>
-        prev ? { ...prev, lateCheckout: true } : null
-      )
-    }
-
-    // If enough data collected, show summary
-    if (
-      bookingData &&
-      bookingData.checkIn &&
-      bookingData.checkOut &&
-      bookingData.adults &&
-      bookingData.rooms &&
-      bookingData.rooms.length > 0 &&
-      bookingStep === 'collecting' &&
-      !showBookingSummary
-    ) {
-      // Calculate nights
-      const checkIn = new Date(bookingData.checkIn)
-      const checkOut = new Date(bookingData.checkOut)
-      const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24))
-      
-      if (nights > 0) {
-        setBookingData((prev) =>
-          prev ? { ...prev, nights } : null
-        )
-        // Trigger summary display on next render
-        setTimeout(() => {
-          setShowBookingSummary(true)
-          setBookingStep('reviewing')
-        }, 500)
-      }
-    }
-  }, [messages, bookingData, bookingStep, showBookingSummary])
-  // Parse BOOKING_DATA JSON tag emitted by Alfred in booking-related responses
-  useEffect(() => {
-    if (bookingStep === 'sending' || bookingStep === 'sent') return
-
-    const allMessages = messages as ChatMessage[]
-    const lastAssistant = allMessages.filter((m) => m.role === 'assistant').pop()
-    if (!lastAssistant) return
-
-    const rawText =
-      lastAssistant.content ||
-      lastAssistant.parts?.map((p) => p.text || '').join('') ||
-      ''
-
-    const tagMatch = rawText.match(/<!--BOOKING_DATA:([\s\S]*?)-->/)
-    if (!tagMatch) return
-
-    let parsed: Partial<BookingData>
-    try {
-      parsed = JSON.parse(tagMatch[1])
-    } catch {
-      return
-    }
-
-    // Merge parsed data with existing, keeping non-null values only
-    setBookingData((prev) => {
-      const base: BookingData = prev ?? {
-        adults: 0,
-        children: 0,
-        rooms: [],
-        breakfast: 'esclusa',
-        lateCheckout: false,
-        petCount: 0,
-        notes: '',
-      }
-
-      const merged: BookingData = {
-        ...base,
-        ...(parsed.checkIn ? { checkIn: parsed.checkIn } : {}),
-        ...(parsed.checkOut ? { checkOut: parsed.checkOut } : {}),
-        ...(parsed.nights != null ? { nights: parsed.nights } : {}),
-        ...(parsed.adults != null && parsed.adults > 0 ? { adults: parsed.adults } : {}),
-        ...(parsed.children != null ? { children: parsed.children } : {}),
-        ...(parsed.rooms && parsed.rooms.length > 0 ? { rooms: parsed.rooms } : {}),
-        ...(parsed.breakfast ? { breakfast: parsed.breakfast } : {}),
-        ...(parsed.lateCheckout != null ? { lateCheckout: parsed.lateCheckout } : {}),
-        ...(parsed.petCount != null ? { petCount: parsed.petCount } : {}),
-        ...(parsed.name ? { name: parsed.name } : {}),
-        ...(parsed.surname ? { surname: parsed.surname } : {}),
-        ...(parsed.email ? { email: parsed.email } : {}),
-        ...(parsed.phone ? { phone: parsed.phone } : {}),
-        ...(parsed.arrivalTime ? { arrivalTime: parsed.arrivalTime } : {}),
-        ...(parsed.notes ? { notes: parsed.notes } : {}),
-      }
-
-      // Recalculate nights if we have both dates
-      if (merged.checkIn && merged.checkOut && !merged.nights) {
-        const ci = new Date(merged.checkIn)
-        const co = new Date(merged.checkOut)
-        const n = Math.ceil((co.getTime() - ci.getTime()) / 86400000)
-        if (n > 0) merged.nights = n
-      }
-
-      return merged
-    })
-
-    if (bookingStep === 'idle') setBookingStep('collecting')
-  }, [messages, bookingStep])
-
-  // Show summary overlay when all required fields are present
-  useEffect(() => {
-    if (
-      bookingStep !== 'collecting' ||
-      showBookingSummary ||
-      !bookingData
-    ) return
-
-    const complete = isBookingDataComplete(bookingData)
-    if (complete) {
-      setTimeout(() => {
-        setShowBookingSummary(true)
-        setBookingStep('reviewing')
-      }, 400)
-    }
-  }, [bookingData, bookingStep, showBookingSummary])
 
   const onSend = useCallback(() => {
     const text = input.trim()
@@ -1293,7 +923,7 @@ export default function AlfredChatWidget() {
           if (isUser) {
             return (
               <article key={message.id} style={{ alignSelf: 'flex-end', ...USER_BUBBLE }}>
-                {text}
+                {renderRichText(text)}
               </article>
             )
           }
@@ -1440,189 +1070,6 @@ export default function AlfredChatWidget() {
           </button>
         </div>
       </footer>
-
-      {showBookingSummary && bookingData && (
-        <section
-          style={{
-            position: 'absolute',
-            inset: 0,
-            zIndex: 40,
-            background: 'linear-gradient(180deg, #f7f1e8 0%, #f2eadf 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 20,
-            overflowY: 'auto',
-          }}
-        >
-          <div
-            style={{
-              width: '100%',
-              maxWidth: 420,
-              background: '#fff',
-              border: '1px solid #e1d2bf',
-              borderRadius: 18,
-              boxShadow: '0 16px 36px rgba(30,17,10,0.16)',
-              padding: '24px 18px',
-            }}
-          >
-            <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 24, color: '#5a3e2b', marginBottom: 14 }}>
-              📋 Riepilogo Prenotazione
-            </div>
-
-            {(() => {
-              const costs = calculateBookingCosts(bookingData)
-              return (
-                <div style={{ fontSize: 14, color: '#3f2d1f', lineHeight: 1.7, marginBottom: 18 }}>
-                  <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #e1d2bf' }}>
-                    <strong>📅 Check-in:</strong> {bookingData?.checkIn}
-                    <br />
-                    <strong>📅 Check-out:</strong> {bookingData?.checkOut}
-                    <br />
-                    <strong>🌙 Notti:</strong> {bookingData?.nights}
-                  </div>
-
-                  <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #e1d2bf' }}>
-                    <strong>👥 Ospiti:</strong> {bookingData?.adults} adulti
-                    {(bookingData?.children ?? 0) > 0 && `, ${bookingData?.children} bambini`}
-                    <br />
-                    <strong>🚪 Camere:</strong> {bookingData?.rooms?.length ?? 0}
-                    {(bookingData?.rooms?.length ?? 0) > 0 && ` (${bookingData?.rooms?.map(r => r.type).join(', ')})`}
-                    {bookingData?.breakfast && (
-                      <>
-                        <br />
-                        <strong>🍳 Colazione:</strong> Inclusa
-                      </>
-                    )}
-                    {bookingData?.lateCheckout && (
-                      <>
-                        <br />
-                        <strong>🕐 Late checkout:</strong> Richiesto
-                      </>
-                    )}
-                    {(bookingData?.petCount ?? 0) > 0 && (
-                      <>
-                        <br />
-                        <strong>🐾 Animali:</strong> {bookingData?.petCount}
-                      </>
-                    )}
-                  </div>
-
-                  <div
-                    style={{
-                      marginBottom: 12,
-                      paddingBottom: 12,
-                      borderBottom: '2px solid #d4cabd',
-                      fontSize: 13,
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                      <span>Camere:</span>
-                      <span>€{costs.roomsTotal.toFixed(2)}</span>
-                    </div>
-                    {costs.supplementsTotal > 0 && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                        <span>Supplementi:</span>
-                        <span>€{costs.supplementsTotal.toFixed(2)}</span>
-                      </div>
-                    )}
-                    {costs.cityTaxTotal > 0 && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                        <span>Tassa di soggiorno:</span>
-                        <span>€{costs.cityTaxTotal.toFixed(2)}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div style={{ fontSize: 16, fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}>
-                    <span>TOTALE:</span>
-                    <span style={{ color: '#800020' }}>€{costs.grandTotal.toFixed(2)}</span>
-                  </div>
-                </div>
-              )
-            })()}
-
-            {bookingError && (
-              <div
-                style={{
-                  background: '#fee2e2',
-                  border: '1px solid #fecaca',
-                  borderRadius: 8,
-                  padding: '8px 12px',
-                  marginBottom: 14,
-                  fontSize: 13,
-                  color: '#b91c1c',
-                }}
-              >
-                ❌ {bookingError}
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowBookingSummary(false)
-                  setBookingStep('collecting')
-                }}
-                disabled={bookingStep === 'sending'}
-                style={{
-                  flex: 1,
-                  padding: '10px 14px',
-                  border: '1px solid #d4cabd',
-                  background: '#f7f1e8',
-                  borderRadius: 8,
-                  cursor: bookingStep === 'sending' ? 'not-allowed' : 'pointer',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: '#5a3e2b',
-                  opacity: bookingStep === 'sending' ? 0.5 : 1,
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  if (bookingStep !== 'sending') {
-                    e.currentTarget.style.background = '#ede1d0'
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#f7f1e8'
-                }}
-              >
-                ✏️ Modifica
-              </button>
-              <button
-                type="button"
-                onClick={submitBooking}
-                disabled={bookingStep === 'sending'}
-                style={{
-                  flex: 1,
-                  padding: '10px 14px',
-                  border: 'none',
-                  background: bookingStep === 'sending' ? '#d4cabd' : '#800020',
-                  borderRadius: 8,
-                  cursor: bookingStep === 'sending' ? 'not-allowed' : 'pointer',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: '#fff',
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  if (bookingStep !== 'sending') {
-                    e.currentTarget.style.background = '#600015'
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (bookingStep !== 'sending') {
-                    e.currentTarget.style.background = '#800020'
-                  }
-                }}
-              >
-                {bookingStep === 'sending' ? '📤 Invio...' : '✅ Confermo'}
-              </button>
-            </div>
-          </div>
-        </section>
-      )}
 
       {showFeedbackScreen && (
         <section
