@@ -56,11 +56,12 @@ const IMAGE_MD_REGEX = /!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g
 // Strips any partial/incomplete image markdown syntax that leaks during streaming
 // e.g. "![Camera" or "![Camera](https://...partial" etc.
 function cleanStreamingArtifacts(text: string): string {
-  // Remove any incomplete image markdown (started but not closed)
   return text
-    .replace(/!\[[^\]]*$/, '')                          // ![...  (open bracket, no close)
-    .replace(/!\[[^\]]*\]\([^)]*$/, '')                 // ![...]( url not closed
-    .replace(/!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/g, '') // fully matched images (already in blocks)
+    .replace(/!\[[^\]]*$/, '')
+    .replace(/!\[[^\]]*\]\([^)]*$/, '')
+    .replace(/!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/g, '')
+    // Strip hidden booking JSON tag from visible output
+    .replace(/<!--BOOKING_DATA:[\s\S]*?-->/g, '')
     .trimEnd()
 }
 
@@ -1057,6 +1058,90 @@ export default function AlfredChatWidget() {
       }
     }
   }, [messages, bookingData, bookingStep, showBookingSummary])
+  // Parse BOOKING_DATA JSON tag emitted by Alfred in booking-related responses
+  useEffect(() => {
+    if (bookingStep === 'sending' || bookingStep === 'sent') return
+
+    const allMessages = messages as ChatMessage[]
+    const lastAssistant = allMessages.filter((m) => m.role === 'assistant').pop()
+    if (!lastAssistant) return
+
+    const rawText =
+      lastAssistant.content ||
+      lastAssistant.parts?.map((p) => p.text || '').join('') ||
+      ''
+
+    const tagMatch = rawText.match(/<!--BOOKING_DATA:([\s\S]*?)-->/)
+    if (!tagMatch) return
+
+    let parsed: Partial<BookingData>
+    try {
+      parsed = JSON.parse(tagMatch[1])
+    } catch {
+      return
+    }
+
+    // Merge parsed data with existing, keeping non-null values only
+    setBookingData((prev) => {
+      const base: BookingData = prev ?? {
+        adults: 0,
+        children: 0,
+        rooms: [],
+        breakfast: 'esclusa',
+        lateCheckout: false,
+        petCount: 0,
+        notes: '',
+      }
+
+      const merged: BookingData = {
+        ...base,
+        ...(parsed.checkIn ? { checkIn: parsed.checkIn } : {}),
+        ...(parsed.checkOut ? { checkOut: parsed.checkOut } : {}),
+        ...(parsed.nights != null ? { nights: parsed.nights } : {}),
+        ...(parsed.adults != null && parsed.adults > 0 ? { adults: parsed.adults } : {}),
+        ...(parsed.children != null ? { children: parsed.children } : {}),
+        ...(parsed.rooms && parsed.rooms.length > 0 ? { rooms: parsed.rooms } : {}),
+        ...(parsed.breakfast ? { breakfast: parsed.breakfast } : {}),
+        ...(parsed.lateCheckout != null ? { lateCheckout: parsed.lateCheckout } : {}),
+        ...(parsed.petCount != null ? { petCount: parsed.petCount } : {}),
+        ...(parsed.name ? { name: parsed.name } : {}),
+        ...(parsed.surname ? { surname: parsed.surname } : {}),
+        ...(parsed.email ? { email: parsed.email } : {}),
+        ...(parsed.phone ? { phone: parsed.phone } : {}),
+        ...(parsed.arrivalTime ? { arrivalTime: parsed.arrivalTime } : {}),
+        ...(parsed.notes ? { notes: parsed.notes } : {}),
+      }
+
+      // Recalculate nights if we have both dates
+      if (merged.checkIn && merged.checkOut && !merged.nights) {
+        const ci = new Date(merged.checkIn)
+        const co = new Date(merged.checkOut)
+        const n = Math.ceil((co.getTime() - ci.getTime()) / 86400000)
+        if (n > 0) merged.nights = n
+      }
+
+      return merged
+    })
+
+    if (bookingStep === 'idle') setBookingStep('collecting')
+  }, [messages, bookingStep])
+
+  // Show summary overlay when all required fields are present
+  useEffect(() => {
+    if (
+      bookingStep !== 'collecting' ||
+      showBookingSummary ||
+      !bookingData
+    ) return
+
+    const complete = isBookingDataComplete(bookingData)
+    if (complete) {
+      setTimeout(() => {
+        setShowBookingSummary(true)
+        setBookingStep('reviewing')
+      }, 400)
+    }
+  }, [bookingData, bookingStep, showBookingSummary])
 
   const onSend = useCallback(() => {
     const text = input.trim()
