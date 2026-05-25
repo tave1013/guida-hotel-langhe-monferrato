@@ -49,8 +49,8 @@ const TOKEN_REGEX =
   /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|((?:https?:\/\/|www\.)[^\s<]+)|([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})|(\+?\d[\d\s()./-]{7,}\d)/gi
 const BOLD_REGEX = /\*\*(.+?)\*\*/g
 
-// Matches absolute image URLs only (Alfred now always sends absolute URLs)
-const IMAGE_MD_REGEX = /!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g
+// Matches absolute image URLs — allow spaces/encoded chars in URL
+const IMAGE_MD_REGEX = /!\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g
 
 // Strips any partial/incomplete image markdown syntax that leaks during streaming
 // e.g. "![Camera" or "![Camera](https://...partial" etc.
@@ -59,7 +59,7 @@ function cleanStreamingArtifacts(text: string): string {
   return text
     .replace(/!\[[^\]]*$/, '')                          // ![...  (open bracket, no close)
     .replace(/!\[[^\]]*\]\([^)]*$/, '')                 // ![...]( url not closed
-    .replace(/!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/g, '') // fully matched images (already in blocks)
+    .replace(/!\[[^\]]*\]\((https?:\/\/[^)]+)\)/g, '') // fully matched images (already in blocks)
     .trimEnd()
 }
 
