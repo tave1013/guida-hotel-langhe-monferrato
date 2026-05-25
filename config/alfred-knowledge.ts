@@ -114,6 +114,32 @@ export const ristorazione = {
     disponibile: true,
     orario: 'Aperto fino alle 23:00',
     note: 'Ideale per un caffè o un calice di vino locale.',
+    listino: [
+      'Caffè: 2 €',
+      'Caffè decaffeinato: 2 €',
+      'Caffè corretto: 3 €',
+      "Caffè d'orzo piccolo: 2 €",
+      "Caffè d'orzo grande: 3,50 €",
+      'Cappuccino: 2,50 €',
+      'Latte macchiato: 3 €',
+      'Tè: 3 €',
+      'Cioccolata calda: 3 €',
+      'Estathè: 4 €',
+      'Coca-Cola in lattina: 4 €',
+      'Crodino: 4 €',
+      'Campari: 4 €',
+      'Cocktail: 7 €',
+      'Amaro: 5 €',
+      'Grappa: 5 €',
+      'Calice di vino rosso: 5 €',
+      'Calice di vino bianco: 5 €',
+      'Birra Moretti 33 cl: 5 €',
+      'Birra Moretti 66 cl: 8 €',
+      "Bottiglietta d'acqua in plastica: 2 €",
+      "Bottiglia d'acqua in vetro: 3,50 €",
+    ],
+    vinoNote:
+      "Se chiedono quale rosso o bianco è disponibile al calice, invita a chiedere direttamente al bar: sapranno indicare il vino del momento.",
   },
   ristaurantiConsigliati: [
     { nome: 'Ristoranti di Costigliole d’Asti', dove: 'Centro paese', tipo: 'Cucina tipica piemontese', prenotazione: 'Consigliata' },
@@ -212,6 +238,8 @@ Wi-Fi: ${servizi.wifi.note}
 ${ristorazione.ristorante.nome}: ${ristorazione.ristorante.descrizione}
 Orari Cena: ${ristorazione.ristorante.orari.cena}
 Bar: ${ristorazione.bar.orario} — ${ristorazione.bar.note}
+Listino bar: ${ristorazione.bar.listino.join(', ')}
+Nota vini al calice: ${ristorazione.bar.vinoNote}
 
 ── TERRITORIO ─────────────────────────────────
 ${territorio.introduzione}

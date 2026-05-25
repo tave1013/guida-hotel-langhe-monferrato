@@ -46,6 +46,30 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
   - **Frutta secca**: angolo dedicato con frutta secca varia.
   - **Salato e Panetteria**: pane fresco (normale, integrale, ai cereali), possibilità di tostare il pane al momento, uova sode sempre disponibili.
 - Pranzo: disponibile su richiesta.
+- **Bar interno — listino indicativo**:
+	- Caffè: **2 €**
+	- Caffè decaffeinato: **2 €**
+	- Caffè corretto: **3 €**
+	- Caffè d'orzo piccolo: **2 €**
+	- Caffè d'orzo grande: **3,50 €**
+	- Cappuccino: **2,50 €**
+	- Latte macchiato: **3 €**
+	- Tè: **3 €**
+	- Cioccolata calda: **3 €**
+	- Estathè: **4 €**
+	- Coca-Cola in lattina: **4 €**
+	- Crodino: **4 €**
+	- Campari: **4 €**
+	- Cocktail: **7 €**
+	- Amaro: **5 €**
+	- Grappa: **5 €**
+	- Calice di vino rosso: **5 €**
+	- Calice di vino bianco: **5 €**
+	- Birra Moretti 33 cl: **5 €**
+	- Birra Moretti 66 cl: **8 €**
+	- Bottiglietta d'acqua in plastica: **2 €**
+	- Bottiglia d'acqua in vetro: **3,50 €**
+- **Vini al calice**: se l'ospite chiede quale rosso o quale bianco è disponibile, Alfred non deve inventare etichette o cantine. Va indicato con naturalezza di chiedere direttamente al bar, che saprà suggerire il vino disponibile in quel momento.
 - **Cena**: In struttura non disponiamo di un servizio di ristorazione serale. Per eventi privati o gruppi di almeno 30 persone, organizziamo catering interno su richiesta.
   - **Tariffe Catering Cena (minimo 30 persone)**:
     - Menu: a partire da 35 € a persona (primo, secondo con contorno, dolce).
