@@ -438,10 +438,10 @@ Base URL assoluto: `https://guida-hotel-langhe-monferrato.vercel.app/foto/`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Camera%20quadrupla%20%282%29.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Camera%20quadrupla%20hotel%20langhe%20e%20monferrato.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Camera%20quadrupla%20letto%20matrimoniale.webp`
-- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Camera%20Quadrupla%202.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Camera%20Quadrupla%20scrivania%20con%20letto.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/camera%20quadrupla%20leto%20matrimoniale.webp`
-- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Bagno%20classico%20con%20doccia.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Camera%20Quadrupla%202.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Bagno%20con%20vasca.webp`
 
 #### Suite / Family
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Suite%20dettagli%20scrivania.webp`
