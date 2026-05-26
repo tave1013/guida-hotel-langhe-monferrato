@@ -442,10 +442,9 @@ Base URL assoluto: `https://guida-hotel-langhe-monferrato.vercel.app/foto/`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Camera%20quadrupla%20letto%20matrimoniale.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Camera%20Quadrupla%20scrivania%20con%20letto.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/camera%20quadrupla%20leto%20matrimoniale.webp`
-- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Camera%20Quadrupla%202.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Bagno%20con%20vasca.webp`
 
-Nota operativa quadrupla: quando l'utente chiede foto della quadrupla, includi sempre anche `Camera%20quadrupla%20letto%20matrimoniale.webp` e `Camera%20Quadrupla%202.webp` oltre alle altre del set.
+Nota operativa quadrupla: quando l'utente chiede foto della quadrupla, includi sempre anche `Camera%20quadrupla%20letto%20matrimoniale.webp` oltre alle altre del set.
 
 #### Suite
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Suite%20dettagli%20scrivania.webp`
