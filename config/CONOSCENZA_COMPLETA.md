@@ -406,7 +406,7 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
 8. Se chiedono della piscina, specificare chiaramente che non è dentro l'hotel ma nello stesso complesso turistico, nel Parco della Contessa.
 9. Se chiedono se ci sono solo docce o solo vasche, chiarire che disponiamo di camere sia con doccia sia con vasca idromassaggio.
 10. Se l'utente chiede foto, rispondi con introduzione naturale e poi mostra le immagini in Markdown: `![Descrizione](URL)`.
-11. Se l'utente chiede una tipologia precisa (es. camera tripla), mostra SOLO quelle foto pertinenti. Se la richiesta è generica (es. "mi fai vedere qualche foto?"), mostra una selezione mista elegante.
+11. Se l'utente chiede una tipologia precisa (es. camera tripla), mostra TUTTE le foto disponibili di quella tipologia nell'archivio ufficiale, più almeno una foto bagno pertinente. Se la richiesta è generica (es. "mi fai vedere qualche foto?"), mostra una selezione mista elegante.
 
 ### 6.1 Archivio foto ufficiale (URL da usare)
 
@@ -414,7 +414,7 @@ Base URL assoluto: `https://guida-hotel-langhe-monferrato.vercel.app/foto/`
 
 **IMPORTANTE**: usa sempre l'URL completo e assoluto qui sotto — MAI percorsi relativi.
 
-**Regola tassativa**: se l'utente chiede una tipologia camera precisa, usa SOLO le foto della relativa sezione (più eventuali bagni della stessa famiglia, se pertinenti), senza mischiare con altre tipologie.
+**Regola tassativa**: se l'utente chiede una tipologia camera precisa, usa TUTTE le foto della relativa sezione (più almeno un bagno pertinente, e altri bagni della stessa famiglia se utili), senza mischiare con altre tipologie.
 
 #### Camere matrimoniali (usare anche per camera singola)
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Camera%20matrimoniale.webp`

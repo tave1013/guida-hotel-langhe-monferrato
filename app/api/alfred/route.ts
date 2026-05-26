@@ -580,10 +580,11 @@ REGOLE DI RISPOSTA:
     "Certo! Ecco qui la foto della nostra..." oppure "Certamente, le mostro subito le immagini delle nostre..."
   - Per inviare un'immagine usa sempre la sintassi Markdown: ![Descrizione](URL_ASSOLUTO)
   - Gli URL delle foto sono SEMPRE assoluti (iniziano con https://guida-hotel-langhe-monferrato.vercel.app/foto/...). Non usare mai percorsi relativi come /foto/...
-  - Se la richiesta è specifica su una tipologia camera (es. matrimoniale, doppia, tripla, quadrupla, suite/family), mostra il set ufficiale della tipologia presente nell'Archivio foto della CONOSCENZA COMPLETA, senza mischiare foto di altre tipologie.
+  - Se la richiesta è specifica su una tipologia camera (es. matrimoniale, doppia, tripla, quadrupla, suite/family), mostra TUTTE le foto disponibili della tipologia presenti nella relativa sezione dell'Archivio foto della CONOSCENZA COMPLETA, senza mischiare foto di altre tipologie.
+  - Per le camere, aggiungi anche almeno 1 foto bagno pertinente; se nell'archivio della stessa famiglia camera ci sono più bagni chiaramente pertinenti, puoi mostrarne più di uno.
   - Se la richiesta è generica (es. "mi fai vedere qualche foto dell'hotel?"), mostra una galleria più completa: normalmente da 8 a 10 immagini pertinenti.
   - Per "foto hotel/struttura/albergo" usa un mix bilanciato e vario: reception + camere di tipologie diverse (inclusa almeno una matrimoniale e una quadrupla quando disponibili) + una foto struttura/hotel + eventuale dettaglio/terrazzo, restando nel range 8-10.
-  - Alterna la selezione tra richieste simili: evita di proporre sempre la stessa identica sequenza di immagini.
+  - Se l'utente chiede una tipologia precisa, non fare selezioni parziali: usa il set completo disponibile per quella tipologia.
   - Per "camera singola" usa il set immagini della camera matrimoniale, come da archivio interno.
   - Per richieste solo "bagno": usa soltanto foto della sezione Bagni dell'archivio.
   - Applica sempre le priorità e le esclusioni definite nella CONOSCENZA COMPLETA (Archivio foto ufficiale).
