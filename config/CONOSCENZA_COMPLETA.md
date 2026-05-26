@@ -459,7 +459,6 @@ Nota operativa quadrupla: quando l'utente chiede foto della quadrupla, includi s
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Secondo%20piano%20family.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Bagno%20family%20ingresso.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Bagno%20con%20vasca%20idromassagigo%20family.webp`
-- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Dettagli.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/dettagli%20bagno.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Servizio%20da%20the.webp`
 
