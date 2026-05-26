@@ -281,7 +281,9 @@ function SmartImageGrid({
   items: ImageItem[]
   onImageClick: (images: ImageItem[], index: number) => void
 }) {
-  const shown = items
+  const MAX = 4
+  const shown = items.slice(0, MAX)
+  const overflow = items.length - MAX
   const half = Math.floor((GRID_W - GRID_GAP) / 2)
 
   if (shown.length === 1) {
@@ -328,21 +330,40 @@ function SmartImageGrid({
     )
   }
 
-  // Multi-row 2-column grid (shows all images)
+  // 2×2 (4 shown, overflow overlay on last)
   return (
     <div
       style={{
         display: 'grid',
         gridTemplateColumns: `${half}px ${half}px`,
-        gridAutoRows: `${half}px`,
+        gridTemplateRows: `${half}px ${half}px`,
         gap: GRID_GAP,
         width: GRID_W,
       }}
     >
       {shown.map((item, i) => {
+        const isLast = i === MAX - 1 && overflow > 0
         return (
           <div key={i} style={CELL_STYLE} onClick={() => onImageClick(items, i)}>
             <img src={item.src} alt={item.alt} style={IMG_FILL} loading="eager" />
+            {isLast && (
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: 'rgba(0,0,0,0.54)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff',
+                  fontSize: 28,
+                  fontWeight: 700,
+                  borderRadius: 10,
+                }}
+              >
+                +{overflow}
+              </div>
+            )}
           </div>
         )
       })}

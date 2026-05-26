@@ -437,7 +437,6 @@ Base URL assoluto: `https://guida-hotel-langhe-monferrato.vercel.app/foto/`
 
 #### Camere quadruple
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Camera%20quadrupla.webp`
-- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Camera%20quadrupla%20%282%29.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Camera%20quadrupla%20hotel%20langhe%20e%20monferrato.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Camera%20quadrupla%20letto%20matrimoniale.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Camera%20Quadrupla%20scrivania%20con%20letto.webp`
