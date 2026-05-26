@@ -496,7 +496,6 @@ Nota operativa family: oltre alle altre foto Family, includi sempre anche `Scale
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Primo%20piano.webp`
 
 #### Dettagli camera/atmosfera camera
-- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Dettagli.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Caterign%20ed%20eventi%20su%20misura.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Catering.webp`
 
