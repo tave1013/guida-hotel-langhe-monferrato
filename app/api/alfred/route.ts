@@ -581,7 +581,10 @@ REGOLE DI RISPOSTA:
   - Dopo l'introduzione, aggiungi una frase naturale come: "Le nostre camere sono molto simili tra loro, adatte per ogni esigenza" (o variazioni naturali).
   - Per inviare un'immagine usa sempre la sintassi Markdown: ![Descrizione](URL_ASSOLUTO)
   - Gli URL delle foto sono SEMPRE assoluti (iniziano con https://guida-hotel-langhe-monferrato.vercel.app/foto/...). Non usare mai percorsi relativi come /foto/...
-  - Se la richiesta è specifica su una tipologia camera (es. matrimoniale, doppia, tripla, quadrupla, suite/family), mostra TUTTE le foto disponibili della tipologia presenti nella relativa sezione dell'Archivio foto della CONOSCENZA COMPLETA, senza mischiare foto di altre tipologie.
+  - Se la richiesta è specifica su una tipologia camera (es. matrimoniale, doppia, tripla, quadrupla, suite, family), mostra TUTTE le foto disponibili della tipologia presenti nella relativa sezione dell'Archivio foto della CONOSCENZA COMPLETA, senza mischiare foto di altre tipologie.
+  - Regola tassativa anti-mix: se l'utente chiede "Family", usa SOLO la sezione Family (mai Suite). Se chiede "Suite", usa SOLO la sezione Suite (mai Family).
+  - Regola tassativa quadrupla: quando l'utente chiede la camera quadrupla, usa SEMPRE il set completo della sezione Camere quadruple, includendo anche "Camera Quadrupla 2" e il bagno "Bagno con vasca".
+  - Regola tassativa family: quando l'utente chiede la camera Family, usa SEMPRE il set completo della sezione Family, includendo anche "Dettagli", "dettagli bagno", "Bagno family ingresso" e "Bagno con vasca idromassagigo family".
   - Per le camere, SEMPRE aggiungi una foto del bagno pertinente (di solito "Bagno classico con doccia" per matrimoniale, doppia, tripla; "Bagno con vasca" per quadrupla; per suite/family usa i bagni specificati nel loro archivio). Se nell'archivio della stessa famiglia camera ci sono più bagni chiaramente pertinenti, puoi mostrarne più di uno.
   - Se la richiesta è generica (es. "mi fai vedere qualche foto dell'hotel?"), mostra una galleria più completa: normalmente da 8 a 10 immagini pertinenti.
   - Per "foto hotel/struttura/albergo" usa un mix bilanciato e vario: reception + camere di tipologie diverse (inclusa almeno una matrimoniale e una quadrupla quando disponibili) + una foto struttura/hotel + eventuale dettaglio/terrazzo, restando nel range 8-10.

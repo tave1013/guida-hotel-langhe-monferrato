@@ -416,6 +416,8 @@ Base URL assoluto: `https://guida-hotel-langhe-monferrato.vercel.app/foto/`
 
 **Regola tassativa**: se l'utente chiede una tipologia camera precisa, usa TUTTE le foto della relativa sezione (più almeno un bagno pertinente, e altri bagni della stessa famiglia se utili), senza mischiare con altre tipologie.
 
+**Regola anti-mix (obbligatoria)**: "Suite" e "Family" sono sezioni diverse. Se chiedono Family usa solo Family; se chiedono Suite usa solo Suite. Per "quadrupla" e "family" usa sempre il set completo della sezione, senza esclusioni.
+
 #### Camere matrimoniali (usare anche per camera singola)
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Camera%20matrimoniale.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Camera%20matrimoniale%203.webp`
