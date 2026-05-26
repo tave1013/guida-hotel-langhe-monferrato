@@ -501,19 +501,15 @@ Nota operativa family: oltre alle altre foto Family, includi sempre anche `Scale
 
 ### 6.2 Regole tassative di utilizzo immagini
 
-1. **Terrazzo** e **dettagli** NON sono foto "struttura/hotel" in risposta standard: trattale come contenuti legati alle camere/atmosfera camera.
-2. **Servizio da the** va mostrata nelle camere (atmosfera/comfort), non nella sezione colazione.
+1. **Terrazzo** NON è foto "struttura/hotel" in risposta standard: trattala come contenuto legato alle camere/atmosfera camera.
+2. **Servizio da the** va mostrata nelle camere Family (atmosfera/comfort), non nella sezione colazione.
 3. Se chiedono "foto hotel/struttura/albergo" in modo generico: mostra una galleria completa da **6 a 10 immagini**, ben bilanciata e variata.
-	- Target consigliato: almeno **2 foto reception** + almeno **3 foto camere** + **1 foto bagno** + **1 foto dettagli/terrazzo** (quando disponibili).
+	- Target consigliato: almeno **2 foto reception** + almeno **3 foto camere** + **1 foto bagno**.
 	- Se alcuni gruppi hanno meno materiale, resta comunque nel range 6-10 usando le altre categorie disponibili senza inventare nulla.
 	- Alterna le immagini tra una risposta e l'altra: non mostrare sempre la stessa combinazione nello stesso ordine.
 4. Se chiedono "foto camera singola": usa le foto camera matrimoniale (stesso archivio visivo di riferimento).
 5. Se chiedono foto bagno: preferisci 1 sola immagine (non carosello lungo), salvo esplicita richiesta di vederne altre.
-6. Se chiedono una stanza specifica (es. matrimoniale, doppia, tripla, quadrupla), mostra un set completo e ricco:
-	- tutte (o quasi tutte) le foto disponibili di quella tipologia camera;
-	- aggiungi anche almeno 1 foto bagno;
-	- aggiungi almeno 1 foto dettagli/comfort (servizio da the);
-	- aggiungi, quando pertinente, la foto terrazzo (`terrazzo-2.webp`).
+6. Se chiedono una stanza specifica (es. matrimoniale, doppia, tripla, quadrupla, family, suite), mostra un set completo usando SOLO le foto elencate nella sezione di quella tipologia nell'Archivio foto ufficiale qui sopra. Non aggiungere foto da altre sezioni.
 	Obiettivo pratico: normalmente 6-10 immagini totali nella risposta, senza fermarsi a 1-2 foto.
 7. Se richiesta generica (senza dettaglio), non fermarti a poche foto: mostra normalmente **6-10 immagini pertinenti**.
 8. Se chiedono "foto hotel/albergo" in modo generico, diversifica sempre il mix includendo più tipologie camera (es. almeno una matrimoniale e una quadrupla quando possibili), oltre a reception e una foto struttura/hotel. Target consigliato: almeno 8 immagini.
