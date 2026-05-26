@@ -445,6 +445,8 @@ Base URL assoluto: `https://guida-hotel-langhe-monferrato.vercel.app/foto/`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Camera%20Quadrupla%202.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Bagno%20con%20vasca.webp`
 
+Nota operativa quadrupla: quando l'utente chiede foto della quadrupla, includi sempre anche `Camera%20quadrupla%20letto%20matrimoniale.webp` e `Camera%20Quadrupla%202.webp` oltre alle altre del set.
+
 #### Suite
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Suite%20dettagli%20scrivania.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Suite%20divanetti.webp`
@@ -461,6 +463,9 @@ Base URL assoluto: `https://guida-hotel-langhe-monferrato.vercel.app/foto/`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Bagno%20con%20vasca%20idromassagigo%20family.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Dettagli.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/dettagli%20bagno.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Servizio%20da%20the.webp`
+
+Nota operativa family: oltre alle altre foto Family, includi sempre anche `Scale%20che%20salgono%20family.webp`, `Secondo%20piano%20family.webp` e `Servizio%20da%20the.webp`.
 
 #### Bagni
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Bagno%201.webp`
