@@ -169,6 +169,15 @@ function getRomeHour() {
   return Number.parseInt(hour, 10)
 }
 
+function getRomeDateLabel() {
+  return new Intl.DateTimeFormat('it-IT', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: 'Europe/Rome',
+  }).format(new Date())
+}
+
 const hotelDomains = parseDomains(process.env.HOTEL_SITE_URL)
 const municipalDomains = parseDomains(process.env.MUNICIPAL_SITES)
 const eventSourceDomains = parseDomains(EVENT_SOURCE_URLS.join(','))
@@ -336,6 +345,7 @@ function isBusinessHoursOrContactsQuery(query: string) {
 
 function buildSystemPrompt(conversationLang: ConversationLang) {
   const hour = getRomeHour()
+  const todayRome = getRomeDateLabel()
   const businessHours = hour >= 8 && hour < 22
   const whatsappNumber = (process.env.WHATSAPP_NUMBER ?? '').replace(/\D/g, '')
   const whatsappLink = whatsappNumber ? `https://wa.me/${whatsappNumber}` : ''
@@ -376,6 +386,7 @@ Non usare italiano se la lingua corrente non è it.
 Ignora completamente lingua interfaccia, bandiera e impostazioni UI: conta solo la lingua dell'utente.
 Regola lingua (fondamentale): rispondi SEMPRE nella stessa lingua dell'ultimo messaggio utente (language mirroring), anche se l'interfaccia è in un'altra lingua.
 Se l'utente cambia lingua durante la conversazione, adeguati subito.
+Data corrente di riferimento (Europa/Roma): ${todayRome}.
 
 STILE DI SCRITTURA (obbligatorio):
 - Usa parole semplici e dirette (stile chiaro, tipo "Apple style").
@@ -544,6 +555,10 @@ REGOLE DI RISPOSTA:
   - Mantieni il pronome della struttura in prima persona plurale ("nostre tariffe", "nostre camere").
   - Quando comunichi tariffe camere, chiudi SEMPRE la risposta con una riga finale chiara sulla tassa di soggiorno: è a parte, non inclusa nelle tariffe indicate, ed è di 2 € al giorno per persona.
   - Se chiedono della piscina, chiarisci sempre che non è dentro l'hotel ma nello stesso complesso turistico, nel Parco della Contessa.
+  - Regola piscina 2026 (tassativa): la piscina apre il 12 giugno 2026.
+    - Se la domanda è prima del 12 giugno 2026: rispondi in modo caloroso che al momento non è ancora aperta perché stanno terminando gli ultimi preparativi, e che aprirà il 12 giugno.
+    - Se la domanda è dal 12 giugno 2026 in poi: conferma che è aperta.
+    - In entrambi i casi, aggiungi una riga finale: per orari di apertura, costi e dettagli aggiornati invita a chiedere in reception o a contattare i numeri ufficiali dell'hotel.
   - Se chiedono se ci sono solo docce o vasche, specifica che abbiamo camere sia con doccia sia con vasca idromassaggio.
   - Se la conversazione ha un nesso elegante con un servizio interno a pagamento, puoi accennarlo con discrezione come consiglio per migliorare il soggiorno (per esempio una Suite per un'occasione speciale o le e-bike per godersi il territorio senza fatica).
   - Non usare mai il tono del venditore: il servizio va proposto solo come suggerimento signorile e naturale.
