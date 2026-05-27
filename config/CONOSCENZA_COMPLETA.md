@@ -475,7 +475,6 @@ Nota anti-refuso family: non usare mai immagini/titoli/alt generici chiamati `De
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/dettagli%20bagno.webp`
 
 #### Reception
-- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception%202.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception%203.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception%204.webp`
@@ -496,7 +495,6 @@ Nota anti-refuso family: non usare mai immagini/titoli/alt generici chiamati `De
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Primo%20piano.webp`
 
 #### Set fisso "Foto Hotel" (obbligatorio su richiesta generica hotel/struttura/albergo)
-- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception%20interna.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception%202.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception%204.webp`
@@ -505,7 +503,6 @@ Nota anti-refuso family: non usare mai immagini/titoli/alt generici chiamati `De
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Hotel%201.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Primo%20piano.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Sala%20colazioni%202.webp`
-- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Family%20ingresso.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Caterign%20ed%20eventi%20su%20misura.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Catering.webp`
 

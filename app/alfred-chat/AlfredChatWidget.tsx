@@ -70,7 +70,6 @@ const CHAT_STORAGE_KEY = 'alfred_widget_chat_v1'
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000
 
 const FIXED_HOTEL_IMAGE_SET: ImageItem[] = [
-  { alt: 'Reception', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception.webp' },
   { alt: 'Reception interna', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception%20interna.webp' },
   { alt: 'Reception 2', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception%202.webp' },
   { alt: 'Reception 4', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception%204.webp' },
@@ -79,7 +78,6 @@ const FIXED_HOTEL_IMAGE_SET: ImageItem[] = [
   { alt: 'Hotel 1', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Hotel%201.webp' },
   { alt: 'Primo piano', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Primo%20piano.webp' },
   { alt: 'Sala colazioni 2', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Sala%20colazioni%202.webp' },
-  { alt: 'Family ingresso', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Family%20ingresso.webp' },
   { alt: 'Caterign ed eventi su misura', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Caterign%20ed%20eventi%20su%20misura.webp' },
   { alt: 'Catering', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Catering.webp' },
 ]
