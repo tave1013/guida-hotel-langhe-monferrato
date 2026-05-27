@@ -22,7 +22,7 @@ export const checkInOut = {
   },
   checkOut: {
     until: '11:00',
-    lateCheckOutNote: 'Il late check-out è possibile su richiesta e secondo disponibilità (può comportare un supplemento).',
+    lateCheckOutNote: 'Il late check-out è possibile su richiesta e secondo disponibilità, con supplemento fisso di 20€ a camera.',
   },
   earlyCheckInNote: 'È possibile richiedere l’entrata anticipata se la camera è già disponibile.',
 }
