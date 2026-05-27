@@ -68,6 +68,30 @@ const GRID_GAP = 3
 const BOOKING_URL = 'https://www.hotellanghemonferrato.com/prenota'
 const CHAT_STORAGE_KEY = 'alfred_widget_chat_v1'
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000
+
+const FIXED_HOTEL_IMAGE_SET: ImageItem[] = [
+  { alt: 'Reception', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception.webp' },
+  { alt: 'Reception interna', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception%20interna.webp' },
+  { alt: 'Reception 2', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception%202.webp' },
+  { alt: 'Reception 4', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception%204.webp' },
+  { alt: 'Ascensore hotel', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Ascensore%20hotel.webp' },
+  { alt: 'Corridoio', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Corridoio.webp' },
+  { alt: 'Hotel 1', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Hotel%201.webp' },
+  { alt: 'Primo piano', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Primo%20piano.webp' },
+  { alt: 'Sala colazioni 2', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Sala%20colazioni%202.webp' },
+  { alt: 'Family ingresso', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Family%20ingresso.webp' },
+  { alt: 'Caterign ed eventi su misura', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Caterign%20ed%20eventi%20su%20misura.webp' },
+  { alt: 'Catering', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Catering.webp' },
+]
+
+function isGenericHotelPhotoRequest(text: string): boolean {
+  const t = text.toLowerCase()
+  const hasPhotoIntent = /foto|immagin/.test(t)
+  const hasHotelIntent = /hotel|albergo|struttura/.test(t)
+  const hasSpecificRoomType = /matrimoniale|doppia|tripla|quadrupla|suite|family|singola/.test(t)
+  return hasPhotoIntent && hasHotelIntent && !hasSpecificRoomType
+}
+
 function clearStoredChatSession() {
   try {
     localStorage.removeItem(CHAT_STORAGE_KEY)
@@ -914,7 +938,7 @@ export default function AlfredChatWidget() {
           </article>
         )}
 
-        {chatMessages.map((message) => {
+        {chatMessages.map((message, index) => {
           if (message.role !== 'assistant' && message.role !== 'user') return null
           const text = getMessageText(message)
           if (!text) return null
@@ -930,6 +954,20 @@ export default function AlfredChatWidget() {
 
           const blocks = parseMessageBlocks(text)
 
+          let previousUserText = ''
+          for (let i = index - 1; i >= 0; i -= 1) {
+            const previous = chatMessages[i]
+            if (previous?.role === 'user') {
+              previousUserText = getMessageText(previous as ChatMessage)
+              break
+            }
+          }
+
+          const shouldForceFixedHotelSet = isGenericHotelPhotoRequest(previousUserText)
+          const renderedBlocks: MessageBlock[] = shouldForceFixedHotelSet
+            ? [...blocks.filter((b) => b.type === 'text'), { type: 'images', items: FIXED_HOTEL_IMAGE_SET }]
+            : blocks
+
           return (
             <div
               key={message.id}
@@ -940,7 +978,7 @@ export default function AlfredChatWidget() {
                 alignItems: 'flex-start',
               }}
             >
-              {blocks.map((block, bi) =>
+              {renderedBlocks.map((block, bi) =>
                 block.type === 'text' ? (
                   <article key={bi} style={ALFRED_BUBBLE}>
                     {renderRichText(block.content)}
