@@ -82,12 +82,23 @@ const FIXED_HOTEL_IMAGE_SET: ImageItem[] = [
   { alt: 'Catering', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/Catering.webp' },
 ]
 
+const FIXED_POOL_IMAGE_SET: ImageItem[] = [
+  { alt: 'Piscina Oasi Blu Costigliole Asti', src: 'https://guida-hotel-langhe-monferrato.vercel.app/foto/piscina_oasi_blu_costigliole_asti.webp' },
+]
+
 function isGenericHotelPhotoRequest(text: string): boolean {
   const t = text.toLowerCase()
   const hasPhotoIntent = /foto|immagin/.test(t)
   const hasHotelIntent = /hotel|albergo|struttura/.test(t)
   const hasSpecificRoomType = /matrimoniale|doppia|tripla|quadrupla|suite|family|singola/.test(t)
   return hasPhotoIntent && hasHotelIntent && !hasSpecificRoomType
+}
+
+function isPoolPhotoRequest(text: string): boolean {
+  const t = text.toLowerCase()
+  const hasPhotoIntent = /foto|immagin/.test(t)
+  const hasPoolIntent = /piscina/.test(t)
+  return hasPhotoIntent && hasPoolIntent
 }
 
 function clearStoredChatSession() {
@@ -962,9 +973,12 @@ export default function AlfredChatWidget() {
           }
 
           const shouldForceFixedHotelSet = isGenericHotelPhotoRequest(previousUserText)
-          const renderedBlocks: MessageBlock[] = shouldForceFixedHotelSet
-            ? [...blocks.filter((b) => b.type === 'text'), { type: 'images', items: FIXED_HOTEL_IMAGE_SET }]
-            : blocks
+          const shouldForcePoolSet = isPoolPhotoRequest(previousUserText)
+          const renderedBlocks: MessageBlock[] = shouldForcePoolSet
+            ? [...blocks.filter((b) => b.type === 'text'), { type: 'images', items: FIXED_POOL_IMAGE_SET }]
+            : shouldForceFixedHotelSet
+              ? [...blocks.filter((b) => b.type === 'text'), { type: 'images', items: FIXED_HOTEL_IMAGE_SET }]
+              : blocks
 
           return (
             <div

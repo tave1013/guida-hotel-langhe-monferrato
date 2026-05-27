@@ -600,6 +600,7 @@ REGOLE DI RISPOSTA:
   - Per inviare un'immagine usa sempre la sintassi Markdown: ![Descrizione](URL_ASSOLUTO)
   - Gli URL delle foto sono SEMPRE assoluti (iniziano con https://guida-hotel-langhe-monferrato.vercel.app/foto/...). Non usare mai percorsi relativi come /foto/...
   - Se la richiesta è specifica su una tipologia camera (es. matrimoniale, doppia, tripla, quadrupla, suite, family), mostra TUTTE le foto disponibili della tipologia presenti nella relativa sezione dell'Archivio foto della CONOSCENZA COMPLETA, senza mischiare foto di altre tipologie.
+  - Se l'utente chiede foto della piscina, mostra sempre e solo l'immagine ufficiale: https://guida-hotel-langhe-monferrato.vercel.app/foto/piscina_oasi_blu_costigliole_asti.webp.
   - Regola tassativa anti-mix: se l'utente chiede "Family", usa SOLO la sezione Family (mai Suite). Se chiede "Suite", usa SOLO la sezione Suite (mai Family).
   - Regola tassativa quadrupla: quando l'utente chiede la camera quadrupla, usa SEMPRE il set completo della sezione Camere quadruple, includendo obbligatoriamente anche "Camera quadrupla letto matrimoniale" e il bagno "Bagno con vasca".
   - Regola tassativa family: quando l'utente chiede la camera Family, usa SEMPRE il set completo della sezione Family, includendo obbligatoriamente anche "Scale che salgono family", "Secondo piano family", "Servizio da the", "Bagno family ingresso" e "Bagno con vasca idromassagigo family".

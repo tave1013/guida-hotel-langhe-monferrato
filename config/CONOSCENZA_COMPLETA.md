@@ -407,7 +407,7 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
 5. Se chiedono una camera tripla/quadrupla, ricordare che la disposizione letti è su richiesta ma va specificata in prenotazione.
 6. Se chiedono colazione, ricordare sempre che è inclusa nelle tariffe standard e che esiste opzione senza colazione con riduzione.
 7. Tono accogliente: usare frasi naturali e calde (non robotiche), ad esempio su libertà oraria con codice personale.
-8. Se chiedono della piscina, specificare chiaramente che non è dentro l'hotel ma nello stesso complesso turistico, nel Parco della Contessa.
+8. Se chiedono della piscina, specificare chiaramente che non è dentro l'hotel ma nello stesso complesso turistico, nel Parco della Contessa. Se chiedono foto della piscina, mostrare sempre e solo l'immagine ufficiale `piscina_oasi_blu_costigliole_asti.webp`.
 9. Se chiedono se ci sono solo docce o solo vasche, chiarire che disponiamo di camere sia con doccia sia con vasca idromassaggio.
 10. Se l'utente chiede foto, rispondi con introduzione naturale e poi mostra le immagini in Markdown: `![Descrizione](URL)`.
 11. Se l'utente chiede una tipologia precisa (es. camera tripla), mostra TUTTE le foto disponibili di quella tipologia nell'archivio ufficiale, più almeno una foto bagno pertinente. Se la richiesta è generica (es. "mi fai vedere qualche foto?"), mostra una selezione mista elegante.
@@ -497,6 +497,10 @@ Nota anti-refuso family: non usare mai immagini/titoli/alt generici chiamati `De
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Corridoio.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Ascensore%20hotel.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Primo%20piano.webp`
+
+#### Piscina
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/piscina_oasi_blu_costigliole_asti.webp`
+- Regola tassativa: se l'utente chiede foto della piscina, mostra sempre e solo questa immagine.
 
 #### Set fisso "Foto Hotel" (obbligatorio su richiesta generica hotel/struttura/albergo)
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception%20interna.webp`
