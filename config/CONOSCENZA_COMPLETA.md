@@ -78,9 +78,9 @@ Fonte consolidata (italiano) per Alfred, con tutte le informazioni operative pre
 
 ### 🏊 Piscina, parcheggio e servizi generali
 - Piscina: non è all'interno dell'edificio hotel; si trova nello stesso complesso turistico, nel "Parco della Contessa".
-- Regola apertura piscina 2026 (tassativa): apertura stagionale il **12 giugno 2026**.
-	- Se la domanda è fatta **prima del 12 giugno 2026**: rispondere in modo caloroso che al momento non è ancora aperta perché stanno terminando gli ultimi preparativi, e che aprirà il 12 giugno 2026.
-	- Se la domanda è fatta **dal 12 giugno 2026 in poi**: confermare che la piscina è aperta.
+- Regola apertura piscina 2026 (tassativa): apertura stagionale il **12 giugno**.
+  - Se la domanda è fatta **prima del 12 giugno**: rispondere in modo caloroso che al momento non è ancora aperta perché stanno terminando gli ultimi preparativi, e che aprirà il 12 giugno.
+  - Se la domanda è fatta **dal 12 giugno in poi**: confermare che la piscina è aperta.
 	- In entrambi i casi, per orari di apertura, costi ed eventuali dettagli operativi, invitare sempre a chiedere in reception o ai contatti ufficiali dell'hotel.
 - **Parcheggio e logistica gruppi**:
   - Ampio parcheggio privato all'aperto, gratuito, davanti all'hotel, senza prenotazione.

@@ -96,7 +96,7 @@ function isGenericHotelPhotoRequest(text: string): boolean {
 
 function isPoolPhotoRequest(text: string): boolean {
   const t = text.toLowerCase()
-  const hasPhotoIntent = /foto|immagin/.test(t)
+  const hasPhotoIntent = /foto|immagin|mostra|veder|fammi vedere|farmi vedere/.test(t)
   const hasPoolIntent = /piscina/.test(t)
   return hasPhotoIntent && hasPoolIntent
 }
