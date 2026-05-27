@@ -495,6 +495,20 @@ Nota anti-refuso family: non usare mai immagini/titoli/alt generici chiamati `De
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Ascensore%20hotel.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/Primo%20piano.webp`
 
+#### Set fisso "Foto Hotel" (obbligatorio su richiesta generica hotel/struttura/albergo)
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception%20interna.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception%202.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Reception%204.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Ascensore%20hotel.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Corridoio.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Hotel%201.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Primo%20piano.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Sala%20colazioni%202.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Family%20ingresso.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Caterign%20ed%20eventi%20su%20misura.webp`
+- `https://guida-hotel-langhe-monferrato.vercel.app/foto/Catering.webp`
+
 #### Esperienze cantine
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/esperienza-cantine-sotterranee.webp`
 - `https://guida-hotel-langhe-monferrato.vercel.app/foto/cantine-sotto-terra.webp`
@@ -503,14 +517,11 @@ Nota anti-refuso family: non usare mai immagini/titoli/alt generici chiamati `De
 
 1. **Terrazzo** NON è foto "struttura/hotel" in risposta standard: trattala come contenuto legato alle camere/atmosfera camera.
 2. **Servizio da the** va mostrata nelle camere Family (atmosfera/comfort), non nella sezione colazione.
-3. Se chiedono "foto hotel/struttura/albergo" in modo generico: mostra una galleria completa da **6 a 10 immagini**, ben bilanciata e variata.
-	- Target consigliato: almeno **2 foto reception** + almeno **3 foto camere** + **1 foto bagno**.
-	- Se alcuni gruppi hanno meno materiale, resta comunque nel range 6-10 usando le altre categorie disponibili senza inventare nulla.
-	- Alterna le immagini tra una risposta e l'altra: non mostrare sempre la stessa combinazione nello stesso ordine.
+3. Se chiedono "foto hotel/struttura/albergo" in modo generico: mostra SEMPRE TUTTE le immagini della sezione **Set fisso "Foto Hotel" (obbligatorio...)** qui sopra, senza esclusioni e senza alternare.
 4. Se chiedono "foto camera singola": usa le foto camera matrimoniale (stesso archivio visivo di riferimento).
 5. Se chiedono foto bagno: preferisci 1 sola immagine (non carosello lungo), salvo esplicita richiesta di vederne altre.
 6. Se chiedono una stanza specifica (es. matrimoniale, doppia, tripla, quadrupla, family, suite), mostra un set completo usando SOLO le foto elencate nella sezione di quella tipologia nell'Archivio foto ufficiale qui sopra. Non aggiungere foto da altre sezioni.
 	Obiettivo pratico: normalmente 6-10 immagini totali nella risposta, senza fermarsi a 1-2 foto.
 7. Se richiesta generica (senza dettaglio), non fermarti a poche foto: mostra normalmente **6-10 immagini pertinenti**.
-8. Se chiedono "foto hotel/albergo" in modo generico, diversifica sempre il mix includendo più tipologie camera (es. almeno una matrimoniale e una quadrupla quando possibili), oltre a reception e una foto struttura/hotel. Target consigliato: almeno 8 immagini.
+8. Per "foto hotel/albergo" generiche NON creare mix alternativi: usa esclusivamente il set fisso completo definito sopra.
 9. Se manca la foto dell'argomento richiesto, non inventare URL e rispondi in modo umano citando esattamente l'argomento.

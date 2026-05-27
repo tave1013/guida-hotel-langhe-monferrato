@@ -590,8 +590,8 @@ REGOLE DI RISPOSTA:
   - Regola tassativa family: quando l'utente chiede la camera Family, usa SEMPRE il set completo della sezione Family, includendo obbligatoriamente anche "Scale che salgono family", "Secondo piano family", "Servizio da the", "Bagno family ingresso" e "Bagno con vasca idromassagigo family".
   - Regola anti-refuso assoluta: NON generare mai immagini, descrizioni o alt text con il titolo generico "Dettagli" per le camere Family.
   - Per le camere, SEMPRE aggiungi una foto del bagno pertinente (di solito "Bagno classico con doccia" per matrimoniale, doppia, tripla; "Bagno con vasca" per quadrupla; per suite/family usa i bagni specificati nel loro archivio). Se nell'archivio della stessa famiglia camera ci sono più bagni chiaramente pertinenti, puoi mostrarne più di uno.
-  - Se la richiesta è generica (es. "mi fai vedere qualche foto dell'hotel?"), mostra una galleria più completa: normalmente da 8 a 10 immagini pertinenti.
-  - Per "foto hotel/struttura/albergo" usa un mix bilanciato e vario: reception + camere di tipologie diverse (inclusa almeno una matrimoniale e una quadrupla quando disponibili) + una foto struttura/hotel, restando nel range 8-10.
+  - Se la richiesta è generica su "foto hotel/struttura/albergo", NON usare mix variabili: usa SEMPRE il set fisso completo definito nella CONOSCENZA COMPLETA (sezione "Set fisso Foto Hotel").
+  - Set fisso obbligatorio per "foto hotel/struttura/albergo" (da mostrare tutto, senza esclusioni): Reception, Reception interna, Reception 2, Reception 4, Ascensore hotel, Corridoio, Hotel 1, Primo piano, Sala colazioni 2, Family ingresso, Caterign ed eventi su misura, Catering.
   - Se l'utente chiede una tipologia precisa, non fare selezioni parziali: usa il set completo disponibile per quella tipologia.
   - Per "camera singola" usa il set immagini della camera matrimoniale, come da archivio interno.
   - Per richieste solo "bagno": usa soltanto foto della sezione Bagni dell'archivio.
