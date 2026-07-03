@@ -860,8 +860,36 @@ export default function AlfredChatWidget() {
           }}
         />
         <div>
-          <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, lineHeight: 1.05 }}>
-            Alfred
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              fontFamily: 'Playfair Display, serif',
+              fontSize: 22,
+              lineHeight: 1.05,
+            }}
+          >
+            <span>Alfred</span>
+            <span
+              aria-label="Assistente AI"
+              title="Assistente AI"
+              style={{
+                fontFamily: 'Inter, system-ui, sans-serif',
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: 0.5,
+                textTransform: 'uppercase',
+                color: '#5a3e2b',
+                background: '#f1e5d7',
+                border: '1px solid #d9c2a6',
+                borderRadius: 999,
+                padding: '2px 7px',
+                lineHeight: 1.2,
+              }}
+            >
+              AI
+            </span>
           </div>
           <div style={{ fontSize: 12, opacity: 0.78 }}>
             Concierge virtuale • Hotel Langhe &amp; Monferrato
@@ -940,12 +968,11 @@ export default function AlfredChatWidget() {
           gap: 6,
         }}
       >
-        {messages.length === 0 && (
-          <article style={ALFRED_BUBBLE}>
-            Benvenuto. Sono Alfred, il concierge dell&apos;Hotel Langhe &amp; Monferrato. Posso
-            aiutarti con camere, servizi e consigli sul territorio, con piacere e discrezione.
-          </article>
-        )}
+        <article style={ALFRED_BUBBLE}>
+          Benvenuto. Sono Alfred, il concierge virtuale basato su intelligenza artificiale
+          dell&apos;Hotel Langhe &amp; Monferrato. Posso aiutarti con camere, servizi e consigli sul
+          territorio, con piacere e discrezione.
+        </article>
 
         {chatMessages.map((message, index) => {
           if (message.role !== 'assistant' && message.role !== 'user') return null
