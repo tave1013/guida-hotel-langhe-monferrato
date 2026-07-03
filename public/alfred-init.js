@@ -10,7 +10,8 @@
     baseUrl: defaultBaseUrl,
     chatPath: '/alfred-chat',
     avatarUrl: `${defaultBaseUrl}/Alfred.webp`,
-    welcomeText: 'Ciao! Sono Alfred, il tuo concierge personale. Come posso aiutarti oggi?',
+    welcomeText:
+      "Benvenuto. Sono Alfred, il concierge virtuale basato su intelligenza artificiale dell'Hotel Langhe & Monferrato. Posso aiutarti con camere, servizi e consigli sul territorio, con piacere e discrezione.",
     welcomeDelayMs: 20000,
     positionBottom: '20px',
     positionRight: '20px',
@@ -215,7 +216,7 @@
 
   const topbar = document.createElement('div')
   topbar.className = 'alfred-widget-topbar'
-  topbar.innerHTML = '<strong>Alfred • Concierge</strong>'
+  topbar.innerHTML = '<strong>Alfred • Assistente AI</strong>'
 
   const closeBtn = document.createElement('button')
   closeBtn.type = 'button'
