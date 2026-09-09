@@ -810,17 +810,27 @@ export default function AlfredChatWidget() {
     const text = input.trim()
     if (!text || isLoading) return
 
-    // Intercept pool open/closed questions and reply with a fixed, authoritative message
+    // Intercept pool open/closed questions and reply with a fixed, localized message
     try {
       const t = text.toLowerCase()
       const mentionsPool = /\bpiscin/i.test(t)
       const asksAboutOpenClosed = /\b(apert|chius|apre|riapr|aperta|chiusa|aperto|chiuso)\b/i.test(t) || /\?/.test(t)
       if (mentionsPool && asksAboutOpenClosed) {
+        const lang = detectLanguageFromText(text)
+        const canned: Record<ConversationLang, string> = {
+          it: 'La piscina è chiusa dal 31 agosto. Riaprirà con la nuova stagione estiva 2027.',
+          en: 'The pool has been closed since August 31. It will reopen with the new summer season 2027.',
+          fr: "La piscine est fermée depuis le 31 août. Elle rouvrira avec la nouvelle saison estivale 2027.",
+          de: 'Der Pool ist seit dem 31. August geschlossen. Er wird mit der neuen Sommersaison 2027 wieder öffnen.',
+          es: 'La piscina está cerrada desde el 31 de agosto. Volverá a abrir con la nueva temporada de verano 2027.',
+        }
+
         const assistantMsg: ChatMessage = {
           id: `local-${Date.now()}`,
           role: 'assistant',
-          parts: [{ type: 'text', text: 'La piscina è chiusa dal 31 agosto. Riaprirà con la nuova stagione estiva 2027.' }],
+          parts: [{ type: 'text', text: canned[lang] ?? canned.it }],
         }
+
         // Append locally without calling backend
         setMessages([...(messages as ChatMessage[]), assistantMsg] as never)
         setInput('')
@@ -832,7 +842,7 @@ export default function AlfredChatWidget() {
 
     sendMessage({ text })
     setInput('')
-  }, [input, isLoading, sendMessage])
+  }, [input, isLoading, sendMessage, setMessages, messages])
 
   const onStop = useCallback(() => {
     if (!isLoading) return
