@@ -762,6 +762,44 @@ export default function AlfredChatWidget() {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading])
 
+  // If backend assistant replies with outdated pool-opening info, replace it
+  useEffect(() => {
+    try {
+      const all = normalizeMessages(messages)
+      if (!all.length) return
+      const last = all[all.length - 1]
+      if (!last || last.role !== 'assistant') return
+      const text = getMessageText(last).toLowerCase()
+
+      const mentionsPool = /\bpiscin/.test(text)
+      // patterns that indicate the assistant says it's open or mentions "12 giugno"
+      const indicatesOpen = /\b(apert|aperta|aperto|riapre|riaprir|12 giugno|12 giugno|12 giu)/i.test(text) || /12\s*giugno/.test(text)
+      if (mentionsPool && indicatesOpen) {
+        const lastUserText = getLastUserText(all)
+        const lang = detectLanguageFromText(lastUserText || text)
+        const canned: Record<ConversationLang, string> = {
+          it: 'La piscina è chiusa dal 31 agosto. Riaprirà con la nuova stagione estiva 2027.',
+          en: 'The pool has been closed since August 31. It will reopen with the new summer season 2027.',
+          fr: "La piscine est fermée depuis le 31 août. Elle rouvrira avec la nouvelle saison estivale 2027.",
+          de: 'Der Pool ist seit dem 31. August geschlossen. Er wird mit der neuen Sommersaison 2027 wieder öffnen.',
+          es: 'La piscina está cerrada desde el 31 de agosto. Volverá a abrir con la nueva temporada de verano 2027.',
+        }
+
+        const replaced: ChatMessage = {
+          ...last,
+          parts: [{ type: 'text', text: canned[lang] ?? canned.it }],
+          content: canned[lang] ?? canned.it,
+        }
+
+        const updated = [...all.slice(0, -1), replaced]
+        setMessages(updated as never)
+      }
+    } catch {
+      // noop
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages])
+
 
   useEffect(() => {
     if (!initialMessages.length) return
