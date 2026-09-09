@@ -809,6 +809,27 @@ export default function AlfredChatWidget() {
   const onSend = useCallback(() => {
     const text = input.trim()
     if (!text || isLoading) return
+
+    // Intercept pool open/closed questions and reply with a fixed, authoritative message
+    try {
+      const t = text.toLowerCase()
+      const mentionsPool = /\bpiscin/i.test(t)
+      const asksAboutOpenClosed = /\b(apert|chius|apre|riapr|aperta|chiusa|aperto|chiuso)\b/i.test(t) || /\?/.test(t)
+      if (mentionsPool && asksAboutOpenClosed) {
+        const assistantMsg: ChatMessage = {
+          id: `local-${Date.now()}`,
+          role: 'assistant',
+          parts: [{ type: 'text', text: 'La piscina è chiusa dal 31 agosto. Riaprirà con la nuova stagione estiva 2027.' }],
+        }
+        // Append locally without calling backend
+        setMessages([...(messages as ChatMessage[]), assistantMsg] as never)
+        setInput('')
+        return
+      }
+    } catch {
+      // noop - fallback to normal behavior
+    }
+
     sendMessage({ text })
     setInput('')
   }, [input, isLoading, sendMessage])
